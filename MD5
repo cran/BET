@@ -1,0 +1,16 @@
+5258ac45a4edd8f8e14820e128159738 *DESCRIPTION
+335b3eb86000d71186091fc3fc143c73 *NAMESPACE
+db5b959a56b26f4b3f1a9914195162c4 *R/BET_package.R
+d89f7652f3bdcd8921c420bf2907ce7c *R/RcppExports.R
+5d19b3bbfb5cf516042f6fb9b13825f4 *R/plot.R
+96a3a8e1ed2e36934fc3f3c0d67646cf *R/star-data.R
+fc29ab81a05b60ce67021837a7b72d37 *data/star.rda
+e32d97308d4f2dd52155915c0da6df16 *man/BET.Rd
+e3924e90a12a93534516e5e1b748f630 *man/BET_package.Rd
+609799a6b7d11ca774f5b731eabecd9f *man/BETs.Rd
+c667b35c2a36077b0e988f61097e38da *man/bet.plot.Rd
+fd12bbeb07bcaec6a197de34baa04c1c *man/star.Rd
+85f198cf608643c49dba417d7642bce7 *man/symm.Rd
+1c4a2f5da3d98ab1cf504557980b4447 *src/Makevars.win
+25f86a8c418b75125539404899af51ae *src/RcppExports.cpp
+b4be0dbd431f3e222549b7b67680ea79 *src/bitwise.cpp
