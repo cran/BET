@@ -6,33 +6,36 @@
 using namespace Rcpp;
 
 // symmCpp
-List symmCpp(NumericMatrix& X, int d);
-RcppExport SEXP _BET_symmCpp(SEXP XSEXP, SEXP dSEXP) {
+List symmCpp(NumericMatrix& X, int d, bool unif);
+RcppExport SEXP _BET_symmCpp(SEXP XSEXP, SEXP dSEXP, SEXP unifSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix& >::type X(XSEXP);
     Rcpp::traits::input_parameter< int >::type d(dSEXP);
-    rcpp_result_gen = Rcpp::wrap(symmCpp(X, d));
+    Rcpp::traits::input_parameter< bool >::type unif(unifSEXP);
+    rcpp_result_gen = Rcpp::wrap(symmCpp(X, d, unif));
     return rcpp_result_gen;
 END_RCPP
 }
 // BETCpp
-List BETCpp(NumericMatrix& X, int d);
-RcppExport SEXP _BET_BETCpp(SEXP XSEXP, SEXP dSEXP) {
+List BETCpp(NumericMatrix& X, int d, bool unif, bool asymptotic);
+RcppExport SEXP _BET_BETCpp(SEXP XSEXP, SEXP dSEXP, SEXP unifSEXP, SEXP asymptoticSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix& >::type X(XSEXP);
     Rcpp::traits::input_parameter< int >::type d(dSEXP);
-    rcpp_result_gen = Rcpp::wrap(BETCpp(X, d));
+    Rcpp::traits::input_parameter< bool >::type unif(unifSEXP);
+    Rcpp::traits::input_parameter< bool >::type asymptotic(asymptoticSEXP);
+    rcpp_result_gen = Rcpp::wrap(BETCpp(X, d, unif, asymptotic));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_BET_symmCpp", (DL_FUNC) &_BET_symmCpp, 2},
-    {"_BET_BETCpp", (DL_FUNC) &_BET_BETCpp, 2},
+    {"_BET_symmCpp", (DL_FUNC) &_BET_symmCpp, 3},
+    {"_BET_BETCpp", (DL_FUNC) &_BET_BETCpp, 4},
     {NULL, NULL, 0}
 };
 

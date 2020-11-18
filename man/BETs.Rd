@@ -2,15 +2,24 @@
 \alias{BETs}
 \title{Binary Expansion Testing up to a Certain Depth}
 \usage{
-BETs(X, d.max = 4)
+BETs(X, d.max = 4, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE)
 }
 \arguments{
 \item{X}{a matrix to be tested. When \code{X} has only one column, \code{BETs} will test whether \code{X} is [0, 1]-uniformly distributed (an error will be given if data is out of range [0, 1]). When \code{X} has two or more columns, \code{BETs} tests the independence among those column vectors.}
 
 \item{d.max}{the maximal depth of the binary expansion for \code{BETs}.}
+\item{unif.margin}{
+  logicals. If \code{TRUE} the data has been uniformed based on empirical cumulative distribution function. Default to be \code{FALSE} and the function uniforms the data.
+  }
+\item{asymptotic}{
+  logicals. If \code{TRUE} the p-value is computed by asymptotic distribution \eqn{Normal(0, n)}. Default to be \code{TRUE}. Ignored if \code{X} has three or more columns.
+  }
+\item{plot}{
+  logicals. If \code{TRUE}, make the plot of cross interaction of the strongest asymmetry. Default to be \code{FALSE}. This option only works for X with two columns.
+  }
 }
 \value{
-\item{bet.s.pvalue}{the overall p-value on the test.}
+\item{bet.s.pvalue.bonf}{the overall p-value on the test.}
 \item{bet.s.index}{the interaction that the p-value is minimal.}
 \item{bet.s.zstatistic}{normal approximation of the test statistic.}
 }
@@ -23,6 +32,6 @@ for all \eqn{2 \le d \le d.max}. The adjustment is done by multiplying the numbe
 v <- runif(128, -pi, pi)
 X1 <- cos(v) + 2.5 * rnorm(128, 0, 1/20)
 X2 <- sin(v) + 2.5 * rnorm(128, 0, 1/20)
-BETs(cbind(X1, X2))
+BETs(cbind(X1, X2), asymptotic = FALSE)
 }
 

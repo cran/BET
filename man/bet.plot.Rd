@@ -2,12 +2,16 @@
 \alias{bet.plot}
 \title{Plotting Binary Expansion Testing (2-dimensions)}
 \usage{
-bet.plot(X, d, cex=0.5, ...)
+bet.plot(X, d, unif.margin = FALSE, cex=0.5, ...)
 }
 \arguments{
 \item{X}{a matrix with two columns.}
 
 \item{d}{depth of BET.}
+
+\item{unif.margin}{
+  logicals. If \code{TRUE} the data has been uniformed based on empirical cumulative distribution function. Default to be \code{FALSE} and the function uniforms the data.
+  }
 
 \item{cex}{number indicating the amount by which plotting text and symbols should be scaled relative to the default.}
 
