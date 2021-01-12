@@ -64,7 +64,7 @@ bet <- function(X, d, unif.margin = FALSE, cex=0.5, ...) UseMethod("bet")
 
 bet.plot <- function(X, d, unif.margin = FALSE, cex=0.5, ...){
   if(ncol(X) != 2) stop("X does not have two columns.")
-  bet.res <- BETCpp(X, d, unif.margin, asymptotic = T)
+  bet.res <- BETCpp(X, d, unif.margin, asymptotic = T, test_uniformity = T, test_independence = F, independence_index = list())
   i1 <- as.character(bet.res$Interaction$X1)
   i2 <- as.character(bet.res$Interaction$X2)
   be.ind1 <- unlist(strsplit(i1, " "))[1]
@@ -78,7 +78,7 @@ bet.plot <- function(X, d, unif.margin = FALSE, cex=0.5, ...){
   plot.bid(d, be.ind1, be.ind2)
 }
 
-BET <- function(X, d, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE){
+BET <- function(X, d, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE, test.independence = FALSE, index = NULL, test.uniformity = TRUE){
   n <- nrow(X)
   p <- ncol(X)
   if (p == 1){
@@ -86,10 +86,19 @@ BET <- function(X, d, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE){
       if (X[n][1] > 1 || X[n][1] < 0) stop("Data out of range [0, 1]")
     }
   }
-  if (plot & p == 2)
+  if (plot && (p == 2))
     bet.plot(X, d, unif.margin)
-  if (plot && p != 2) warning('plot not available: X does not have two columns.')
-  BETCpp(X, d, unif.margin, asymptotic)
+  if (plot && (p != 2)) warning("plot not available: X does not have two columns.")
+
+  if (test.uniformity){
+    test.independence <- FALSE
+  }else if ((!test.independence)){
+    stop("Choose uniformity or independence to test.")
+  }else if (is.null(index)){
+    stop("Need a list of index!")
+  }
+
+  BETCpp(X, d, unif.margin, asymptotic, test.uniformity, test.independence, index)
 }
 
 symm <- function(X, d, unif.margin = FALSE){
@@ -103,10 +112,10 @@ symm <- function(X, d, unif.margin = FALSE){
   symmCpp(X, d, unif.margin)
 }
 
-BETs <- function(X, d.max=4, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE){
+BETs <- function(X, d.max=4, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE, test.independence = FALSE, index = NULL, test.uniformity = TRUE){
   n <- nrow(X)
   p <- ncol(X)
-  temp <- BET(X, 1, unif.margin, asymptotic) #BET
+  temp <- BET(X, 1, unif.margin, asymptotic, FALSE, test.independence, index, test.uniformity) #BET
   bet.adj.pvalues <- rep(NA,d.max)
   bet.extreme.asymmetry <- rep(NA,d.max)
 
@@ -123,12 +132,16 @@ BETs <- function(X, d.max=4, unif.margin = FALSE, asymptotic = TRUE, plot = FALS
     return(list(bet.s.pvalue=temp$p.value.bonf,bet.s.extreme.asymmetry=temp$Extreme.Asymmetry, bet.s.index=temp$Interaction, bet.s.zstatistic=temp$z.statistic))
   }else{
     for (id in 2:d.max){
-      tempa <- BET(X, id, unif.margin, asymptotic) #BET
+      tempa <- BET(X, id, unif.margin, asymptotic, FALSE, test.independence, index, test.uniformity) #BET
 
       max.abs.count.interaction <- abs(tempa$Extreme.Asymmetry)
       bet.extreme.asymmetry[id] <- tempa$Extreme.Asymmetry
 
-      FE.pvalue <- min((tempa$p.value.bonf/(2^(p*id)-p*(2^id-1)-1)) * ((2^(p*id)-p*(2^id-1)-1) - (2^(p*(id-1))-p*(2^(id-1)-1)-1)), 1)
+      if (p == 1){
+        FE.pvalue <- min(tempa$p.value.bonf/(2^id-1) * ((2^id-1) - (2^(id-1)-1)), 1)
+      }else{
+        FE.pvalue <- min((tempa$p.value.bonf/(2^(p*id)-p*(2^id-1)-1)) * ((2^(p*id)-p*(2^id-1)-1) - (2^(p*(id-1))-p*(2^(id-1)-1)-1)), 1)
+      }
 
       bet.adj.pvalues[id] <- FE.pvalue
       if (FE.pvalue < FE.pvalue0){
@@ -145,4 +158,34 @@ BETs <- function(X, d.max=4, unif.margin = FALSE, asymptotic = TRUE, plot = FALS
     bet.s.zstat <- abs(bet.s.extreme.asymmetry)/sqrt(n)
     return(list(bet.s.pvalue.bonf=bet.s.pvalue,bet.s.extreme.asymmetry=bet.s.extreme.asymmetry, bet.s.index=bet.s.interaction, bet.s.zstatistic=bet.s.zstat))
   }
+}
+
+BEAST <- function(X, d, subsample.percent = 1/2, B = 100, unif.margin = FALSE, lambda = NULL, test.independence = FALSE, index = NULL, test.uniformity = TRUE, p.value.method = "p", num.permutations = 100){
+  n <- nrow(X)
+  p <- ncol(X)
+  if (p == 1){
+    for (i in 1:n){
+      if (X[n][1] > 1 || X[n][1] < 0) stop("Data out of range [0, 1]")
+    }
+  }
+
+  if(is.null(lambda)){
+    lambda <- sqrt(2 * log(2^(p * d)) / n) / 2
+  }
+
+  if (test.uniformity){
+    test.independence <- FALSE
+  }else if ((!test.independence)){
+    stop("Choose uniformity or independence to test.")
+  }else if (is.null(index)){
+    stop("Need a list of index!")
+  }
+
+  if(!p.value.method %in% c("p", "s")){
+    p.value.method <- "NA"
+  }
+
+  m <- n * subsample.percent
+
+  BeastCpp(X, d, m, B, unif.margin, lambda, test.uniformity, test.independence, index, p.value.method, num.permutations)
 }

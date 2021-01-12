@@ -2,7 +2,16 @@
 \alias{BETs}
 \title{Binary Expansion Testing up to a Certain Depth}
 \usage{
-BETs(X, d.max = 4, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE)
+BETs(
+  X,
+  d.max = 4,
+  unif.margin = FALSE,
+  asymptotic = TRUE,
+  plot = FALSE,
+  test.independence = FALSE,
+  index = NULL,
+  test.uniformity = TRUE
+)
 }
 \arguments{
 \item{X}{a matrix to be tested. When \code{X} has only one column, \code{BETs} will test whether \code{X} is [0, 1]-uniformly distributed (an error will be given if data is out of range [0, 1]). When \code{X} has two or more columns, \code{BETs} tests the independence among those column vectors.}
@@ -17,6 +26,15 @@ BETs(X, d.max = 4, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE)
 \item{plot}{
   logicals. If \code{TRUE}, make the plot of cross interaction of the strongest asymmetry. Default to be \code{FALSE}. This option only works for X with two columns.
   }
+\item{test.independence}{
+  logicals. If \code{TRUE}, test independence among the variables listed in \code{index}. Default to be \code{FALSE}
+}
+\item{index}{
+  a list of indices. If provided, test the independence among two or more groups of variables, for example, \eqn{(X_1, X_2)} and \eqn{X_3}.
+}
+\item{test.uniformity}{
+  logicals. If \code{TRUE}, test mutual independence among all variables.
+}
 }
 \value{
 \item{bet.s.pvalue.bonf}{the overall p-value on the test.}

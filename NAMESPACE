@@ -3,6 +3,7 @@ export(BET)
 export(symm)
 export(bet.plot)
 export(BETs)
+export(BEAST)
 
 importFrom(Rcpp, evalCpp)
 importFrom("grDevices", "rgb")

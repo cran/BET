@@ -11,9 +11,20 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include <fstream>
+#include <random>
 #include <Rcpp.h>
+
+struct VectorHasher {
+  int operator()(const std::vector<int> &V) const {
+    int hash = V.size();
+    for(auto &i : V) {
+      hash ^= i + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+    }
+    return hash;
+  }
+};
 
 namespace N
 {
@@ -27,32 +38,50 @@ namespace N
 		std::vector<std::vector<std::string>> getSymmInteraction();
 		std::vector<int> getSymmStats();
 		std::vector<std::string> getBinary();
-		BETfunction(Rcpp::NumericMatrix& X_R, int depth, bool unif, bool asymptotic);
+		void Beast(std::size_t m, std::size_t B, double lambda, bool test_uniformity, bool test_independence, std::vector<std::vector<std::size_t>>& independence_index);
+		double getBeastStat();
+		std::string getBeastInteraction();
+		BETfunction(std::vector<std::vector<double>>& X_R, int depth, bool unif, bool asymptotic, bool test_uniformity, bool test_independence, std::vector<std::vector<std::size_t>>& independence_index);
 
 	   private:
 		bool unifMargin;
     bool asympt;
-		size_t numThread = 4;
-		size_t p;
+    bool testUnif;
+    bool testIndep;
+    std::vector<std::vector<std::size_t>> indepIndex;
+		std::size_t numThread = 4;
+		std::size_t p;
+		std::size_t n;
 		std::vector<std::vector<double>> X;
 		std::vector<std::string> binary_inter;
 		// std::vector<std::string> symminter;
 		std::vector<std::vector<std::string>> out_symminter;
 		std::vector<int> out_symmstats;
 		std::vector<long long> bid;
+		std::vector<std::string> inter;
+		std::vector<std::vector<std::size_t>> allidx;
+		std::vector<std::size_t> thread;
+		std::unordered_map<std::string, int> countInteraction;
+		std::string freqInter;
 		int Stats = 0;
+		double BeastStat = 0;
 		double pvalue = 0;
-		std::vector<std::vector<double>> imp(Rcpp::NumericMatrix& X);
+		// std::vector<std::vector<double>> imp(Rcpp::NumericMatrix& X);
 		std::vector<std::string> interaction_str;
 		std::vector<std::vector<int>> interactions();
 		std::vector<std::string> interaction_index(bool binary);
 		std::string binaryToNum(std::string binary);
 		std::vector<long long> BIDs();
 		std::vector<std::vector<int>> ecdf_loc(std::vector<std::vector<double>>& X);
-		std::map<std::vector<int>, int> groupC(std::vector<std::vector<int>>& c);
+		std::unordered_map<std::vector<int>, int, VectorHasher> groupC(std::vector<std::vector<int>>& c);
 		int locate(int c, long long b);
-		std::vector<std::vector<std::vector<int>>> CBIDs(std::map<std::vector<int>, int>& count);
-		std::vector<std::vector<size_t>> allComb();
+		std::vector<std::vector<std::vector<int>>> CBIDs(std::unordered_map<std::vector<int>, int, VectorHasher>& count);
+		std::vector<std::vector<std::size_t>> allComb();
+		bool isIndex(std::vector<std::size_t>& idx);
+		std::vector<int> symmstats(std::vector<int>& countValues, std::vector<std::vector<std::vector<int>>>& matrix, size_t sampleSize);
+		std::vector<std::size_t> unreplaceShuffle(std::size_t size, std::size_t max_size, std::mt19937& gen);
+		std::vector<double> subsample(size_t m, size_t B);
+		std::vector<double> softthreshold(std::vector<double>& S, double lambda);
 		double logHypergeometricProb(double* logFacs, int a, int b, int c, int d);
 		double fisherExact(int a, int b, int c, int d);
 		double binomial(int n, int k, double p);
