@@ -1,9 +1,9 @@
-fdadd4527e0e188e5de6ff75649f6089 *DESCRIPTION
+07006f1ccee24643e732a44986f4e749 *DESCRIPTION
 cce886c13a87aa95e3b3d7561cb0b6f7 *NAMESPACE
 a2c8cd4a9b2bd491d57eef72bbe38790 *R/RcppExports.R
 a8cfed6b3c4c745e88b691c191aae4cc *R/plot.R
 e148e788be297627d911ca8017df9c99 *R/star-data.R
-24d8d39a08e43b234f8ee9173533496e *build/partial.rdb
+f887f344a0e1fea31602e58b3b79e858 *build/partial.rdb
 fc29ab81a05b60ce67021837a7b72d37 *data/star.rda
 787ab1a18a81b880ed657ac2d6c1b519 *man/BET.Rd
 177718eb43a5c449833ec2490f6562ab *man/BET_package.Rd
@@ -12,8 +12,8 @@ dca59c28743b566bfe1a0abf917b459a *man/Beast.Rd
 1da51f7a35fbc5e65b39f5182a39e118 *man/bet.plot.Rd
 4357cff8c64096b8dfc8f8e2bc7fc4a0 *man/star.Rd
 77b6b1d70fd89922d76619b97c3fdfda *man/symm.Rd
-a59dabb534a4d84a70034949eb188e50 *src/BET.h
-f912dd7a924447ed548a3093413ef9c6 *src/BET3.cpp
+28a6b4b218bf8e67dbd69e3f2d1f33ce *src/BET.h
+89947533438722bc9d5055c328d071fb *src/BET3.cpp
 d2f2a86a10c108fb5d8b5fdb820cf55b *src/Makevars
 1c4a2f5da3d98ab1cf504557980b4447 *src/Makevars.win
 9d22f70d7cc62f5e887b5e6636a71e80 *src/RcppExports.cpp

@@ -23,7 +23,7 @@
 #include <iterator>
 #include <random>
 #include <chrono>
-#include <unordered_map>
+#include <map>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -185,9 +185,9 @@ vector<vector<int>> BETfunction::ecdf_loc(vector<vector<double>>& X)
   return C; // Cij
 }
 
-std::unordered_map<std::vector<int>, int, VectorHasher> BETfunction::groupC(vector<vector<int>>& c)
+map<vector<int>, int> BETfunction::groupC(vector<vector<int>>& c)
 {
-  std::unordered_map<std::vector<int>, int, VectorHasher> count;
+  map<vector<int>, int> count;
   for (auto& v: c){
     count[v]++;
   }
@@ -202,7 +202,7 @@ int BETfunction::locate(int c, long long b)
   return res;
 }
 
-vector<vector<vector<int>>> BETfunction::CBIDs(std::unordered_map<std::vector<int>, int, VectorHasher>& count)
+vector<vector<vector<int>>> BETfunction::CBIDs(map<vector<int>, int>& count)
 {
   size_t numCount = count.size(), numBIDs = (int)round(pow(2, d));
   // store all Cij * BIDs in to a matrix: p * #BIDs * #Cijs
@@ -212,7 +212,7 @@ vector<vector<vector<int>>> BETfunction::CBIDs(std::unordered_map<std::vector<in
     size_t j = 0;
     vector<vector<int>> temp(numBIDs, vector<int>(numCount, 1));
     // go over all BIDs:
-    for (std::unordered_map<std::vector<int>, int, VectorHasher>::iterator it=count.begin(); it!=count.end()&&(j < numCount); ++it, j++){
+    for (map<vector<int>, int>::iterator it=count.begin(); it!=count.end()&&(j < numCount); ++it, j++){
       // go over all p dimensions:
       for (size_t k = 0; k < numBIDs - 1; k++){
         temp[k+1][j] = locate(it->first[i], bid[k]);
@@ -272,13 +272,16 @@ static bool abs_compare(int a, int b)
 bool BETfunction::isIndex(vector<size_t>& idx)
 {
   bool res = 1;
-  for(size_t i = 0; i < indepIndex.size(); i++){
-    bool nonZero = 0;
-    for(size_t j = 0; j < indepIndex[i].size(); j++){
-      nonZero = nonZero || (idx[indepIndex[i][j]-1] != 0);
+  if(!testUnif){
+    for(size_t i = 0; i < indepIndex.size(); i++){
+      bool nonZero = 0;
+      for(size_t j = 0; j < indepIndex[i].size(); j++){
+        nonZero = nonZero || (idx[indepIndex[i][j]-1] != 0);
+      }
+      res = res && nonZero;
     }
-    res = res && nonZero;
   }
+
   return res;
 }
 
@@ -289,7 +292,7 @@ vector<int> BETfunction::symmstats(vector<int>& countValues, vector<vector<vecto
   size_t numCount = countValues.size();
 
 #ifdef _OPENMP
-  omp_set_num_threads(numThread);
+  // omp_set_num_threads(numThread);
   #pragma omp parallel for
 #endif
   for (size_t th = 1; th < numThread + 1; th++){
@@ -302,7 +305,7 @@ vector<int> BETfunction::symmstats(vector<int>& countValues, vector<vector<vecto
         bi += inter[allidx[i][v]];
       }
       binary_inter[i] = bi;
-      if ( ( (count(allidx[i].begin(), allidx[i].end(), 0) <= (int)(p - 2)) && isIndex(allidx[i]) ) || (p == 1 && i > 0) ){
+      if ( ( (count(allidx[i].begin(), allidx[i].end(), 0) <= (int)(p - 2)) && (testUnif ||isIndex(allidx[i]) ) ) || (p == 1 && i > 0) ){
         int loc0 = 1, sum = 0;
         for (size_t j = 0; j < numCount; j++){
           for (size_t k = 0; k < p; k++){
@@ -373,11 +376,11 @@ vector<double> BETfunction::subsample(size_t m, size_t B)
     vector<vector<int>> c = ecdf_loc(X_m);
 
     // create a map that count for observations in the same location
-    std::unordered_map<std::vector<int>, int, VectorHasher> mapC = groupC(c);
+    map<vector<int>, int> mapC = groupC(c);
 
     // number of each location
     vector<int> countValues;
-    for (std::unordered_map<std::vector<int>, int, VectorHasher>::iterator it=mapC.begin(); it!=mapC.end(); ++it){
+    for (map<vector<int>, int>::iterator it=mapC.begin(); it!=mapC.end(); ++it){
       countValues.push_back(it->second);
     }
 
@@ -656,7 +659,7 @@ BETfunction:: BETfunction(vector<vector<double>>& X_R, int depth, bool unif, boo
 	// start multiprocessing
 #ifdef _OPENMP
 	if(p >= 2)
-	  numThread = omp_get_num_procs();
+	  numThread = 4;
 #endif
 
 	// loops: 2^pd
@@ -680,12 +683,12 @@ BETfunction:: BETfunction(vector<vector<double>>& X_R, int depth, bool unif, boo
 	vector<vector<int>> c = ecdf_loc(X);
 
 	// create a map that count for observations in the same location
-	unordered_map<vector<int>, int, VectorHasher> mapC = groupC(c);
+	map<vector<int>, int> mapC = groupC(c);
 	size_t numCount = mapC.size();
 
 	// number of each location
 	vector<int> countValues;
-	for (std::unordered_map<std::vector<int>, int, VectorHasher>::iterator it=mapC.begin(); it!=mapC.end(); ++it){
+	for (map<vector<int>, int>::iterator it=mapC.begin(); it!=mapC.end(); ++it){
 	  countValues.push_back(it->second);
 	}
 
@@ -880,7 +883,8 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
   double pv;
 
   if(method == "NA"){
-    pv = -1;
+    List L = List::create(Named("Interaction") = bet.getBeastInteraction(), Named("BEAST.Statistic") = beastStat);
+    return L;
   }else{
     // 1-dim: only simulation
     if(p == 1){
@@ -944,15 +948,13 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
     }
 
     pv = (double)count_if(nullD.begin(), nullD.end(), [&beastStat](double x) { return (x >= beastStat); }) / (double)numPerm;
+
+    List L = List::create(Named("Interaction") = bet.getBeastInteraction(), Named("BEAST.Statistic") = beastStat, Named("Null.Distribution") = nullD, Named("p.value") = pv);
+
+    return L;
   }
 
 
-
-  // , Named("Null.Distribution") = nullD
-
-  List L = List::create(Named("Interaction") = bet.getBeastInteraction(), Named("BEAST.Statistic") = beastStat, Named("p.value") = pv);
-
-  return L;
 }
 
 

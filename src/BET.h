@@ -11,20 +11,10 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <unordered_map>
+#include <map>
 #include <fstream>
 #include <random>
 #include <Rcpp.h>
-
-struct VectorHasher {
-  int operator()(const std::vector<int> &V) const {
-    int hash = V.size();
-    for(auto &i : V) {
-      hash ^= i + 0x9e3779b9 + (hash << 6) + (hash >> 2);
-    }
-    return hash;
-  }
-};
 
 namespace N
 {
@@ -49,7 +39,7 @@ namespace N
     bool testUnif;
     bool testIndep;
     std::vector<std::vector<std::size_t>> indepIndex;
-		std::size_t numThread = 4;
+		std::size_t numThread = 1;
 		std::size_t p;
 		std::size_t n;
 		std::vector<std::vector<double>> X;
@@ -73,9 +63,9 @@ namespace N
 		std::string binaryToNum(std::string binary);
 		std::vector<long long> BIDs();
 		std::vector<std::vector<int>> ecdf_loc(std::vector<std::vector<double>>& X);
-		std::unordered_map<std::vector<int>, int, VectorHasher> groupC(std::vector<std::vector<int>>& c);
+		std::map<std::vector<int>, int> groupC(std::vector<std::vector<int>>& c);
 		int locate(int c, long long b);
-		std::vector<std::vector<std::vector<int>>> CBIDs(std::unordered_map<std::vector<int>, int, VectorHasher>& count);
+		std::vector<std::vector<std::vector<int>>> CBIDs(std::map<std::vector<int>, int>& count);
 		std::vector<std::vector<std::size_t>> allComb();
 		bool isIndex(std::vector<std::size_t>& idx);
 		std::vector<int> symmstats(std::vector<int>& countValues, std::vector<std::vector<std::vector<int>>>& matrix, size_t sampleSize);
