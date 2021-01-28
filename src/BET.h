@@ -69,7 +69,7 @@ namespace N
 		std::vector<std::vector<std::size_t>> allComb();
 		bool isIndex(std::vector<std::size_t>& idx);
 		std::vector<int> symmstats(std::vector<int>& countValues, std::vector<std::vector<std::vector<int>>>& matrix, size_t sampleSize);
-		std::vector<std::size_t> unreplaceShuffle(std::size_t size, std::size_t max_size, std::mt19937& gen);
+		std::vector<std::size_t> unreplaceShuffle(std::size_t size, std::size_t max_size);
 		std::vector<double> subsample(size_t m, size_t B);
 		std::vector<double> softthreshold(std::vector<double>& S, double lambda);
 		double logHypergeometricProb(double* logFacs, int a, int b, int c, int d);

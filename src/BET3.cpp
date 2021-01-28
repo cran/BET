@@ -33,6 +33,8 @@ using namespace Rcpp;
 using namespace std;
 using namespace N;
 
+inline int randWrapper(const int n) { return floor(unif_rand()*n); }
+
 // vector<vector<double> > BETfunction::imp(NumericMatrix& X)
 // {
 //   int r = X.nrow(), c = X.ncol();
@@ -333,7 +335,7 @@ vector<int> BETfunction::symmstats(vector<int>& countValues, vector<vector<vecto
   return symmstats;
 }
 
-vector<size_t> BETfunction::unreplaceShuffle(size_t size, size_t max_size, mt19937& gen)
+vector<size_t> BETfunction::unreplaceShuffle(size_t size, size_t max_size)
 {
   assert(size <= max_size);
   vector<size_t> b(size);
@@ -342,8 +344,9 @@ vector<size_t> BETfunction::unreplaceShuffle(size_t size, size_t max_size, mt199
   for(size_t i = 0; i < max_size; i++){
     t[i] = i;
   }
+
   // shuffle 0~max_size
-  shuffle(t.begin(), t.end(), gen);
+  random_shuffle(t.begin(), t.end(), randWrapper);
 
   // get first size entry
   for(size_t i = 0; i < size; i++){
@@ -358,14 +361,18 @@ vector<double> BETfunction::subsample(size_t m, size_t B)
   size_t total = (int)round(pow(2, p*d));
   vector<double> res(total);
 
-  // bool debug = 0;
+  // bool debug = 1;
 
   // subsample B times
   for(size_t b = 0; b < B; b++){
-    //	subsample m*p
-    random_device rd;
-    mt19937 gen(rd());
-    vector<size_t> idx = unreplaceShuffle(m, n, gen);
+    vector<size_t> idx = unreplaceShuffle(m, n);
+
+    // if(debug){
+    //   for(size_t i = 0; i < m; i++){
+    //     cout << idx[i] << " ";
+    //   }
+    //   cout << " The " << b+1 << " time index " << endl;
+    // }
 
     //	new data
     vector<vector<double> > X_m(m, vector<double>(p));
@@ -468,22 +475,22 @@ double BETfunction::binomial(int n, int k, double p)
   for (int i = 0; i < n + 1; ++i)
     ret[i] = new double[k + 1] ();
 
-    ret[0][0] = 1.0;
-    for (int i = 1; i < n + 1; ++i)
-      ret[i][0] = (1.0 - p) * ret[i - 1][0];
-    for (int j = 1; j < k + 1; ++j)
-      ret[0][j] = 0.0;
-    for (int i = 1; i < n + 1; ++i){
-      for (int j = 1; j < k + 1; ++j){
-        ret[i][j] = (1.0 - p) * ret[i - 1][j] + p * ret[i - 1][j - 1];
-      }
+  ret[0][0] = 1.0;
+  for (int i = 1; i < n + 1; ++i)
+    ret[i][0] = (1.0 - p) * ret[i - 1][0];
+  for (int j = 1; j < k + 1; ++j)
+    ret[0][j] = 0.0;
+  for (int i = 1; i < n + 1; ++i){
+    for (int j = 1; j < k + 1; ++j){
+      ret[i][j] = (1.0 - p) * ret[i - 1][j] + p * ret[i - 1][j - 1];
     }
+  }
 
-    for (int i = 0; i < n + 1; ++i)
-      delete [] ret[i];
-    delete [] ret;
+  for (int i = 0; i < n + 1; ++i)
+    delete [] ret[i];
+  delete [] ret;
 
-    return ret[n][k];
+  return ret[n][k];
 }
 
 double BETfunction::pbinom(int n, int k, double p)
@@ -777,6 +784,14 @@ vector<vector<double>> imp(NumericMatrix& X)
 List symmCpp(NumericMatrix& X_R, int d, bool unif)
 {
   vector<vector<double>> X = imp(X_R);
+  // vector<vector<size_t>> idx;
+  // if(test_independence){
+  //   for(auto& v: independence_index){
+  //     idx.push_back(v);
+  //   }
+  // }else{
+  //   idx = {{}};
+  // }
   vector<vector<size_t>> indp = {{}};
 
   BETfunction bet(X, d, unif, 1, 1, 0, indp);
@@ -899,14 +914,14 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
         }
       }
       vector<vector<double>> newdata = indp;
-      for(size_t sample = 0; sample < numPerm; sample++){
+      for(int sample = 0; sample < numPerm; sample++){
         // uniformity:
         if(test_uniformity){
           for(size_t col = 1; col < p; col++){
-            random_device rd;
-            mt19937 gener(rd());
+
             // shuffle 0~n
-            shuffle(t.begin(), t.end(), gener);
+            random_shuffle(t.begin(), t.end(), randWrapper);
+
             for(size_t i = 0; i < n; i++){
               newdata[i][col] = indp[t[i]][col];
             }
@@ -917,13 +932,13 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
         }else{
           // independence:
           for(size_t g = 1; g < idx.size(); g++){
-            random_device rd;
-            mt19937 gener(rd());
+
             // shuffle 0~n
-            shuffle(t.begin(), t.end(), gener);
+            random_shuffle(t.begin(), t.end(), randWrapper);
+
             for(size_t v = 0; v < idx[g].size(); v++){
               for(size_t i = 0; i < n; i++){
-                newdata[i][idx[g][v]] = indp[t[i]][idx[g][v]];
+                newdata[i][idx[g][v]-1] = indp[t[i]][idx[g][v]-1];
               }
             }
           }
@@ -935,7 +950,7 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
       }
     }else if(method == "s"){
       // simulation
-      for(size_t sample = 0; sample < numPerm; sample++){
+      for(int sample = 0; sample < numPerm; sample++){
         for(size_t j = 0; j < p; j++){
           for(size_t i = 0; i < n; i++){
             indp[i][j] = dis(gen);
