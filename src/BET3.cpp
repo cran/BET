@@ -346,6 +346,9 @@ vector<size_t> BETfunction::unreplaceShuffle(size_t size, size_t max_size)
   }
 
   // shuffle 0~max_size
+  // std::random_device rd;
+  // std::mt19937 gen(rd());
+  // shuffle(t.begin(), t.end(), gen);
   random_shuffle(t.begin(), t.end(), randWrapper);
 
   // get first size entry
@@ -885,6 +888,7 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
   vector<double> nullD(numPerm);
 
   vector<vector<double>> indp(n, vector<double>(p));
+  NumericMatrix indp_R(n, p);
 
   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
   std::default_random_engine gen(seed);
@@ -908,11 +912,15 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
 
     if(method == "p"){
       // permutation
+      // for(size_t j = 0; j < p; j++){
+      //   for(size_t i = 0; i < n; i++){
+      //     indp[i][j] = runif(1);
+      //   }
+      // }
       for(size_t j = 0; j < p; j++){
-        for(size_t i = 0; i < n; i++){
-          indp[i][j] = dis(gen);
-        }
+        indp_R(_, j) = rnorm(n);
       }
+      indp  = imp(indp_R);
       vector<vector<double>> newdata = indp;
       for(int sample = 0; sample < numPerm; sample++){
         // uniformity:
@@ -920,6 +928,9 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
           for(size_t col = 1; col < p; col++){
 
             // shuffle 0~n
+            // random_device rd;
+            // mt19937 gen(rd());
+            // shuffle(t.begin(), t.end(), gen);
             random_shuffle(t.begin(), t.end(), randWrapper);
 
             for(size_t i = 0; i < n; i++){
@@ -934,6 +945,9 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
           for(size_t g = 1; g < idx.size(); g++){
 
             // shuffle 0~n
+            // random_device rd;
+            // mt19937 gen(rd());
+            // shuffle(t.begin(), t.end(), gen);
             random_shuffle(t.begin(), t.end(), randWrapper);
 
             for(size_t v = 0; v < idx[g].size(); v++){
@@ -951,11 +965,15 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
     }else if(method == "s"){
       // simulation
       for(int sample = 0; sample < numPerm; sample++){
+        // for(size_t j = 0; j < p; j++){
+        //   for(size_t i = 0; i < n; i++){
+        //     indp[i][j] = dis(gen);
+        //   }
+        // }
         for(size_t j = 0; j < p; j++){
-          for(size_t i = 0; i < n; i++){
-            indp[i][j] = dis(gen);
-          }
+          indp_R(_, j) = rnorm(n);
         }
+        indp = imp(indp_R);
         BETfunction bet0(indp, d, unif, 1, 1, 0, idx);
         bet0.Beast(m, B, lambda, test_uniformity, test_independence, idx);
         nullD[sample] = bet0.getBeastStat();
