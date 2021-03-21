@@ -67,29 +67,38 @@ vector<vector<int> > BETfunction::interactions()
 	return res;
 }
 
-vector<string> BETfunction::interaction_index(bool binary)
+vector<vector<int>> BETfunction::interaction_mat()
+{
+  // matrix interaction for BEAST
+  vector<vector<int>> itr = interactions();
+  size_t len = itr.size();
+  vector<vector<int>> res(len + 1, vector<int>(d));
+
+  for(size_t i = 0; i < len; i++){
+    for(size_t j = 0; j < itr[i].size(); j++){
+      res[i+1][itr[i][j]-1] = 1;
+    }
+  }
+
+  return res;
+}
+
+vector<string> BETfunction::interaction_index()
 {
 	// interactions in string: 1-d and binary
 	vector<vector<int>> itr = interactions();
 	vector<string> res;
-	string s, str;
+	string str;
 	string str0(d, '0');
 	res.push_back(str0);
 	for (size_t i = 0; i < itr.size(); i++)
 	{
-		s = accumulate(itr[i].begin()+1, itr[i].end(), to_string(itr[i][0]),
-				[](const string& a, int b){return a + ':' + to_string(b);});
 		// binary
 		str = str0;
 		for (size_t j = 0; j < itr[i].size(); j++){
 			str.replace(itr[i][j]-1, 1, "1");
 		}
-		if (binary){
-			res.push_back(str);
-		}else{
-			res.push_back(s + " " + str);
-		}
-
+		res.push_back(str);
 	}
 	return res;
 }
@@ -292,21 +301,26 @@ vector<int> BETfunction::symmstats(vector<int>& countValues, vector<vector<vecto
   size_t total = (int)round(pow(2, p*d));
   vector<int> symmstats(total, 0);
   size_t numCount = countValues.size();
+  vector<vector<int>> inter_idx(total);
 
 #ifdef _OPENMP
-  // omp_set_num_threads(numThread);
-  #pragma omp parallel for
+  omp_set_num_threads(numThread);
+#pragma omp parallel for
 #endif
+
   for (size_t th = 1; th < numThread + 1; th++){
     //		double wtime = omp_get_wtime();
     for (size_t i = thread[th - 1]; i < thread[th]; i++){
       string bi = "";
+      vector<int> iidx(p);
       for (size_t v = 0; v < p; v++){
         // store interaction
         out_symminter[v][i] = inter[allidx[i][v]];
         bi += inter[allidx[i][v]];
+        iidx[v] = allidx[i][v];
       }
       binary_inter[i] = bi;
+      inter_idx[i] = iidx;
       if ( ( (count(allidx[i].begin(), allidx[i].end(), 0) <= (int)(p - 2)) && (testUnif ||isIndex(allidx[i]) ) ) || (p == 1 && i > 0) ){
         int loc0 = 1, sum = 0;
         for (size_t j = 0; j < numCount; j++){
@@ -326,8 +340,8 @@ vector<int> BETfunction::symmstats(vector<int>& countValues, vector<vector<vecto
   vector<int>::iterator findMax = max_element(symmstats.begin(), symmstats.end(), abs_compare);
   size_t max_idx = distance(symmstats.begin(), findMax);
 
-  // max interaction
-  string max_interaction = binary_inter[max_idx];
+  // max interaction index
+  vector<int> max_interaction = inter_idx[max_idx];
 
   // count most frequent max interaction
   countInteraction[max_interaction]++;
@@ -544,9 +558,9 @@ double BETfunction::getBeastStat()
   return BeastStat;
 }
 
-string BETfunction::getBeastInteraction()
+vector<vector<int>> BETfunction::getBeastInteraction()
 {
-  return freqInter;
+  return BeastInter;
 }
 
 void BETfunction::Beast(size_t m, size_t B, double lambda, bool test_uniformity, bool test_independence, vector<vector<size_t>>& independence_index)
@@ -622,6 +636,11 @@ void BETfunction::Beast(size_t m, size_t B, double lambda, bool test_uniformity,
   // }
 
   freqInter = mostFreq->first;
+
+  for(size_t i = 0; i < p; i++){
+    BeastInter.push_back(inter_mat[freqInter[i]]);
+  }
+
 }
 
 
@@ -648,8 +667,8 @@ BETfunction:: BETfunction(vector<vector<double>>& X_R, int depth, bool unif, boo
 
 	bid = BIDs();
 
-	inter = interaction_index(1);
-	vector<string> inter_nb = interaction_index(0);
+	inter = interaction_index();
+	inter_mat = interaction_mat();
 
 	// all variables go over all bids:
 	allidx = allComb();
@@ -723,7 +742,7 @@ BETfunction:: BETfunction(vector<vector<double>>& X_R, int depth, bool unif, boo
 	for (size_t i = 0; i < p; i++){
 	  vector<string>::iterator ans = find(inter.begin(), inter.end(), out_symminter[i][max_idx]);
 	  int index = distance(inter.begin(), ans);
-	  interaction_str[i] = inter_nb[index];
+	  interaction_str[i] = inter[index];
 	  if (p == 2 && i == 0){
 	    // count marginal
 	    for (size_t j = 0; j < numCount; j++){
@@ -784,20 +803,20 @@ vector<vector<double>> imp(NumericMatrix& X)
 }
 
 //[[Rcpp::export]]
-List symmCpp(NumericMatrix& X_R, int d, bool unif)
+List symmCpp(NumericMatrix& X_R, int d, bool unif, bool test_uniformity, bool test_independence, List& independence_index)
 {
   vector<vector<double>> X = imp(X_R);
-  // vector<vector<size_t>> idx;
-  // if(test_independence){
-  //   for(auto& v: independence_index){
-  //     idx.push_back(v);
-  //   }
-  // }else{
-  //   idx = {{}};
-  // }
-  vector<vector<size_t>> indp = {{}};
+  vector<vector<size_t>> idx;
+  if(test_independence){
+    for(auto& v: independence_index){
+      idx.push_back(v);
+    }
+  }else{
+    idx = {{}};
+  }
+  // vector<vector<size_t>> indp = {{}};
 
-  BETfunction bet(X, d, unif, 1, 1, 0, indp);
+  BETfunction bet(X, d, unif, 1, test_uniformity, test_independence, idx);
   size_t p = X_R.ncol();
   // size_t length = (int)round(pow(2, (int)p*d));
 
@@ -851,7 +870,7 @@ List BETCpp(NumericMatrix& X_R, int d, bool unif, bool asymptotic, bool test_uni
 
   size_t p = X[0].size();
   for (size_t i = p; i > 0; i--){
-    CharacterVector vi = {bet.getInteraction()[i-1]};
+    // CharacterVector vi = {bet.getInteraction()[i-1]};
     df.push_front(bet.getInteraction()[i-1], "X" + to_string(i));
   }
 
@@ -862,7 +881,7 @@ List BETCpp(NumericMatrix& X_R, int d, bool unif, bool asymptotic, bool test_uni
 }
 
 //[[Rcpp::export]]
-List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double lambda, bool test_uniformity, bool test_independence, List& independence_index, String method, int numPerm)
+List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double lambda, bool test_uniformity, bool test_independence, List& independence_index, NumericVector& null_simu, String method, int numPerm)
 {
   vector<vector<double>> X = imp(X_R);
   // independence index
@@ -887,12 +906,12 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
   //null distribution simulation
   vector<double> nullD(numPerm);
 
-  vector<vector<double>> indp(n, vector<double>(p));
+  vector<vector<double>> indp;
   NumericMatrix indp_R(n, p);
 
-  unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-  std::default_random_engine gen(seed);
-  std::normal_distribution<double> dis(0,1);
+  // unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+  // std::default_random_engine gen(seed);
+  // std::normal_distribution<double> dis(0,1);
 
   vector<size_t> t(n);
   for(size_t i = 0; i < n; i++){
@@ -901,8 +920,24 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
 
   double pv;
 
+  IntegerMatrix beastinter(p, d);
+  for(size_t i = 0; i < p; i++){
+    for(size_t j = 0; j < d; j++)
+      beastinter(i, j) = bet.getBeastInteraction()[i][j];
+  }
+
   if(method == "NA"){
-    List L = List::create(Named("Interaction") = bet.getBeastInteraction(), Named("BEAST.Statistic") = beastStat);
+    List L = List::create(Named("Interaction") = beastinter, Named("BEAST.Statistic") = beastStat);
+    return L;
+  }else if(method == "Y"){
+    // user provide null distribution
+    size_t l = null_simu.size();
+    vector<double> nullsim(l);
+    for(size_t i = 0; i < l; i++){
+      nullsim[i] = null_simu[i];
+    }
+    pv = (double)count_if(nullsim.begin(), nullsim.end(), [&beastStat](double x) { return (x >= beastStat); }) / (double)l;
+    List L = List::create(Named("Interaction") = beastinter, Named("BEAST.Statistic") = beastStat, Named("p.value") = pv);
     return L;
   }else{
     // 1-dim: only simulation
@@ -982,7 +1017,7 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
 
     pv = (double)count_if(nullD.begin(), nullD.end(), [&beastStat](double x) { return (x >= beastStat); }) / (double)numPerm;
 
-    List L = List::create(Named("Interaction") = bet.getBeastInteraction(), Named("BEAST.Statistic") = beastStat, Named("Null.Distribution") = nullD, Named("p.value") = pv);
+    List L = List::create(Named("Interaction") = beastinter, Named("BEAST.Statistic") = beastStat, Named("Null.Distribution") = nullD, Named("p.value") = pv);
 
     return L;
   }
@@ -990,4 +1025,97 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
 
 }
 
+//[[Rcpp::export]]
+NumericVector nullCpp(size_t n, size_t p, int d, size_t m, size_t B, double lambda, bool test_uniformity, bool test_independence, List& independence_index, String method, int numPerm)
+{
+  // independence index
+  vector<vector<size_t>> idx;
+  if(test_independence){
+    for(auto& v: independence_index){
+      idx.push_back(v);
+    }
+  }else{
+    idx = {{}};
+  }
 
+  //null distribution simulation
+  NumericVector nullD (numPerm);
+
+  vector<vector<double>> indp;
+  NumericMatrix indp_R(n, p);
+
+  vector<size_t> t(n);
+  for(size_t i = 0; i < n; i++){
+    t[i] = i;
+  }
+
+  // 1-dim: only simulation
+  if(p == 1){
+    method = "s";
+  }
+
+  if(method == "p"){
+    // permutation
+    for(size_t j = 0; j < p; j++){
+      indp_R(_, j) = rnorm(n);
+    }
+    indp  = imp(indp_R);
+    vector<vector<double>> newdata = indp;
+    for(int sample = 0; sample < numPerm; sample++){
+      // uniformity:
+      if(test_uniformity){
+        for(size_t col = 1; col < p; col++){
+
+          // shuffle 0~n
+          random_shuffle(t.begin(), t.end(), randWrapper);
+
+          for(size_t i = 0; i < n; i++){
+            newdata[i][col] = indp[t[i]][col];
+          }
+        }
+        BETfunction bet0(newdata, d, 0, 1, 1, 0, idx);
+        bet0.Beast(m, B, lambda, test_uniformity, test_independence, idx);
+        nullD[sample] = bet0.getBeastStat();
+      }else{
+        // independence:
+        for(size_t g = 1; g < idx.size(); g++){
+
+          // shuffle 0~n
+          // random_device rd;
+          // mt19937 gen(rd());
+          // shuffle(t.begin(), t.end(), gen);
+          random_shuffle(t.begin(), t.end(), randWrapper);
+
+          for(size_t v = 0; v < idx[g].size(); v++){
+            for(size_t i = 0; i < n; i++){
+              newdata[i][idx[g][v]-1] = indp[t[i]][idx[g][v]-1];
+            }
+          }
+        }
+      }
+      // null distribution:
+      BETfunction bet0(newdata, d, 0, 1, 1, 0, idx);
+      bet0.Beast(m, B, lambda, test_uniformity, test_independence, idx);
+      nullD[sample] = bet0.getBeastStat();
+    }
+  }else if(method == "s"){
+    // simulation
+    for(int sample = 0; sample < numPerm; sample++){
+      // for(size_t j = 0; j < p; j++){
+      //   for(size_t i = 0; i < n; i++){
+      //     indp[i][j] = dis(gen);
+      //   }
+      // }
+      for(size_t j = 0; j < p; j++){
+        indp_R(_, j) = rnorm(n);
+      }
+      indp = imp(indp_R);
+      BETfunction bet0(indp, d, 0, 1, 1, 0, idx);
+      bet0.Beast(m, B, lambda, test_uniformity, test_independence, idx);
+      nullD[sample] = bet0.getBeastStat();
+    }
+  }
+
+  return nullD;
+
+}

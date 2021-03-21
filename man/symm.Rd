@@ -7,7 +7,14 @@ Symmetry Statistics for all Interactions
 \code{symm} returns all the symmetry statistics up to depth \code{d} in marginal binary expansions for the tests \code{BET} and \code{BETs}.
 }
 \usage{
-symm(X, d, unif.margin = FALSE)
+symm(
+  X,
+  d,
+  unif.margin = FALSE,
+  test.independence = FALSE,
+  index = NULL,
+  test.uniformity = TRUE
+)
 }
 \arguments{
   \item{X}{
@@ -18,6 +25,15 @@ depth of the marginal binary expansions.
 }
   \item{unif.margin}{
   logicals. If \code{TRUE} the data has been uniformed based on empirical cumulative distribution function. Default to be \code{FALSE} and the function uniforms the data.
+  }
+  \item{test.independence}{
+  logicals. If \code{TRUE}, test independence among the variables listed in \code{index}. Default to be \code{FALSE}
+}
+  \item{index}{
+    a list of indices. If provided, test the independence among two or more groups of variables, for example, \eqn{(X_1, X_2)} and \eqn{X_3}.
+  }
+  \item{test.uniformity}{
+    logicals. If \code{TRUE}, test mutual independence among all variables.
   }
 }
 

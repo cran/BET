@@ -41,10 +41,12 @@ plot.bid <- function(depth, be.ind1, be.ind2){
   RDx <- 2*BEx-1
   RDy <- 2*BEy-1
 
-  be.ind1.num <- as.numeric(unlist(strsplit(be.ind1,":")))
+  be.ind1.num <- as.numeric(unlist(strsplit(be.ind1,"")))
+  be.ind1.num <- which(be.ind1.num == 1)
   x.prod <- apply(RDx[,be.ind1.num,drop=F],1,prod) #1:row
 
-  be.ind2.num <- as.numeric(unlist(strsplit(be.ind2,":")))
+  be.ind2.num <- as.numeric(unlist(strsplit(be.ind2,"")))
+  be.ind2.num <- which(be.ind2.num == 1)
   y.prod <- apply(RDy[,be.ind2.num,drop=F],1,prod)
 
   col.ind <- x.prod*y.prod
@@ -101,7 +103,7 @@ BET <- function(X, d, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE, test
   BETCpp(X, d, unif.margin, asymptotic, test.uniformity, test.independence, index)
 }
 
-symm <- function(X, d, unif.margin = FALSE){
+symm <- function(X, d, unif.margin = FALSE, test.independence = FALSE, index = NULL, test.uniformity = TRUE){
   n <- nrow(X)
   p <- ncol(X)
   if (p == 1){
@@ -109,7 +111,7 @@ symm <- function(X, d, unif.margin = FALSE){
       if (X[n][1] > 1 || X[n][1] < 0) stop("Data out of range [0, 1]")
     }
   }
-  symmCpp(X, d, unif.margin)
+  symmCpp(X, d, unif.margin, test.uniformity, test.independence, index)
 }
 
 BETs <- function(X, d.max=4, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE, test.independence = FALSE, index = NULL, test.uniformity = TRUE){
@@ -160,7 +162,7 @@ BETs <- function(X, d.max=4, unif.margin = FALSE, asymptotic = TRUE, plot = FALS
   }
 }
 
-BEAST <- function(X, d, subsample.percent = 1/2, B = 100, unif.margin = FALSE, lambda = NULL, test.independence = FALSE, index = NULL, test.uniformity = TRUE, p.value.method = "p", num.permutations = 100){
+BEAST <- function(X, d, subsample.percent = 1/2, B = 100, unif.margin = FALSE, lambda = NULL, test.independence = FALSE, index = NULL, test.uniformity = TRUE, null.simu = NULL, p.value.method = "p", num.permutations = NULL){
   n <- nrow(X)
   p <- ncol(X)
   if (p == 1){
@@ -176,16 +178,57 @@ BEAST <- function(X, d, subsample.percent = 1/2, B = 100, unif.margin = FALSE, l
   if (test.uniformity){
     test.independence <- FALSE
   }else if ((!test.independence)){
-    stop("Choose uniformity or independence to test.")
+    stop("Select uniformity or independence to test.")
+  }else if (is.null(index)){
+    stop("Need a list of index!")
+  }
+
+  if(is.null(null.simu)){
+    null.simu <- c(0);
+    if(!p.value.method %in% c("p", "s")){
+      p.value.method <- "NA"
+      num.permutations <- 1
+    }
+  }else{
+    p.value.method <- "Y"
+    num.permutations <- 1
+  }
+
+  if(p.value.method == "p"){
+    num.permutations <- 100
+  }else if(p.value.method == "s"){
+    num.permutations <- 1000
+  }
+
+  m <- n * subsample.percent
+
+  BeastCpp(X, d, m, B, unif.margin, lambda, test.uniformity, test.independence, index, null.simu, p.value.method, num.permutations)
+}
+
+BEAST.null.simu <- function(n, p, d, subsample.percent = 1/2, B = 100, lambda = NULL, test.independence = FALSE, index = NULL, test.uniformity = TRUE, p.value.method = "p", num.permutations = NULL){
+  if(is.null(lambda)){
+    lambda <- sqrt(2 * log(2^(p * d)) / n) / 2
+  }
+
+  if (test.uniformity){
+    test.independence <- FALSE
+  }else if ((!test.independence)){
+    stop("Select uniformity or independence to test.")
   }else if (is.null(index)){
     stop("Need a list of index!")
   }
 
   if(!p.value.method %in% c("p", "s")){
-    p.value.method <- "NA"
+    stop("Select a method from permutation or simulation to generate a null distribution.")
+  }
+
+  if(p.value.method == "p"){
+    num.permutations = 100
+  }else if(p.value.method == "s"){
+    num.permutations = 1000
   }
 
   m <- n * subsample.percent
 
-  BeastCpp(X, d, m, B, unif.margin, lambda, test.uniformity, test.independence, index, p.value.method, num.permutations)
+  nullCpp(n, p, d, m, B, lambda, test.uniformity, test.independence, index, p.value.method, num.permutations)
 }

@@ -30,7 +30,7 @@ namespace N
 		std::vector<std::string> getBinary();
 		void Beast(std::size_t m, std::size_t B, double lambda, bool test_uniformity, bool test_independence, std::vector<std::vector<std::size_t>>& independence_index);
 		double getBeastStat();
-		std::string getBeastInteraction();
+		std::vector<std::vector<int>> getBeastInteraction();
 		BETfunction(std::vector<std::vector<double>>& X_R, int depth, bool unif, bool asymptotic, bool test_uniformity, bool test_independence, std::vector<std::vector<std::size_t>>& independence_index);
 
 	   private:
@@ -49,17 +49,20 @@ namespace N
 		std::vector<int> out_symmstats;
 		std::vector<long long> bid;
 		std::vector<std::string> inter;
+		std::vector<std::vector<int>> inter_mat;
 		std::vector<std::vector<std::size_t>> allidx;
 		std::vector<std::size_t> thread;
-		std::unordered_map<std::string, int> countInteraction;
-		std::string freqInter;
+		std::map<std::vector<int>, int> countInteraction;
+		std::vector<int> freqInter;
+		std::vector<std::vector<int>> BeastInter;
 		int Stats = 0;
 		double BeastStat = 0;
 		double pvalue = 0;
 		// std::vector<std::vector<double>> imp(Rcpp::NumericMatrix& X);
 		std::vector<std::string> interaction_str;
 		std::vector<std::vector<int>> interactions();
-		std::vector<std::string> interaction_index(bool binary);
+		std::vector<std::vector<int>> interaction_mat();
+		std::vector<std::string> interaction_index();
 		std::string binaryToNum(std::string binary);
 		std::vector<long long> BIDs();
 		std::vector<std::vector<int>> ecdf_loc(std::vector<std::vector<double>>& X);

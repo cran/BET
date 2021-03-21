@@ -4,6 +4,7 @@ export(symm)
 export(bet.plot)
 export(BETs)
 export(BEAST)
+export(BEAST.null.simu)
 
 importFrom(Rcpp, evalCpp)
 importFrom("grDevices", "rgb")

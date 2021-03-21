@@ -1,32 +1,38 @@
-\name{BEAST}
-\alias{BEAST}
-\title{Binary Expansion Approximate Symmetry Test}
+\name{BEAST.null.simu}
+\alias{BEAST.null.simu}
+%- Also NEED an '\alias' for EACH other topic documented here.
+\title{
+BEAST Null Distribution
+}
+\description{
+\code{BEAST.null.simu} gives a vector of the null distribution of the BEAST statistic.
+}
 \usage{
-BEAST(
-  X,
+BEAST.null.simu(
+  n,
+  p,
   d,
   subsample.percent = 1/2,
   B = 100,
-  unif.margin = FALSE,
   lambda = NULL,
   test.independence = FALSE,
   index = NULL,
   test.uniformity = TRUE,
-  null.simu = NULL,
   p.value.method = "p",
   num.permutations = NULL
 )
 }
+%- maybe also 'usage' for other objects documented here.
 \arguments{
-\item{X}{a matrix to be tested.}
+\item{n}{sample size.}
 
-\item{d}{depth of the binary expansion for the \code{BEAST}.}
+\item{p}{dimension.}
+
+\item{d}{depth of the binary expansion.}
 
 \item{subsample.percent}{sample size for subsampling.}
 
 \item{B}{times of subsampling.}
-
-\item{unif.margin}{logicals. If \code{TRUE} the marginal distribution of data is known. Default to be \code{FALSE} and the function uniforms the data.}
 
 \item{lambda}{soft thresholding.}
 
@@ -39,9 +45,6 @@ BEAST(
 \item{test.uniformity}{
   logicals. If \code{TRUE}, test mutual independence among all variables.
 }
-\item{null.simu}{
-  a vector of the null distribution of the BEAST statistic.
-}
 \item{p.value.method}{
   If \code{"p"}, then compute null distribution with permutations. If \code{"s"}, then compute null distribution with simulations. Otherwise, do not provide null distribution or p-value.
 }
@@ -51,18 +54,12 @@ BEAST(
 }
 
 \value{
-\item{Interaction}{the most frequent interaction among all subsampling.}
-\item{BEAST.Statistic}{BEAST statistic.}
-\item{p.value}{simulated p-value.}
+\code{BEAST.null.simu} returns a vector of length \code{num.permutations} that simulates the null distribution of the BEAST for given sample size n, dimension p, and depth D
 }
 
-\description{
-\code{BEAST} (Binary Expansion Approximate Symmetry Test) is used for nonparametric detection of nonuniformity or dependence.
-}
 \examples{
-X1 <- rnorm(128)
-X2 <- rnorm(128)
-Y <- 0.2 * (X1 + X2) + sqrt(0.92) * rnorm(128)
-BEAST(cbind(X1, X2, Y), 3, test.independence = TRUE,
-index = list(c(1,2), c(3)), test.uniformity = FALSE, p.value.method = NA)
+## Elapsed times 2.42499 secs
+## Measured in R 4.0.2, 32 bit, on a processor 3.3 GHz 6-Core Intel Core i5 under MacOS.
+\dontrun{BEAST.null.simu(128, 2, 3)}
 }
+

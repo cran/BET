@@ -16,7 +16,8 @@ The \code{BET} package provides functions for nonparametric detection of nonunif
 
 \section{Reference(s)}{
 
-Kai Zhang (2019) BET on Independence, Journal of the American Statistical Association, 114:528, 1620-1637, \doi{10.1080/01621459.2018.1537921} and
+Kai Zhang (2019) BET on Independence, Journal of the American Statistical Association, 114:528, 1620-1637, \doi{10.1080/01621459.2018.1537921},
+Kai Zhang, Zhigen Zhao, and Wen Zhou (2021). BEAUTY Powered BEAST, <arXiv:2103.00674> and
 Zhigen Zhao, Michael Baiocchi, Kai Zhang. SorBET: A Fast and Powerful Algorithm to Test Dependence of Variables.
 }
 
