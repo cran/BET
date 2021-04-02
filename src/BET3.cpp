@@ -920,14 +920,14 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
 
   double pv;
 
-  IntegerMatrix beastinter(p, d);
-  for(size_t i = 0; i < p; i++){
-    for(size_t j = 0; j < d; j++)
-      beastinter(i, j) = bet.getBeastInteraction()[i][j];
-  }
+  // IntegerMatrix beastinter(p, d);
+  // for(size_t i = 0; i < p; i++){
+  //   for(size_t j = 0; j < d; j++)
+  //     beastinter(i, j) = bet.getBeastInteraction()[i][j];
+  // }
 
   if(method == "NA"){
-    List L = List::create(Named("Interaction") = beastinter, Named("BEAST.Statistic") = beastStat);
+    List L = List::create(Named("Interaction") = bet.getBeastInteraction(), Named("BEAST.Statistic") = beastStat);
     return L;
   }else if(method == "Y"){
     // user provide null distribution
@@ -937,7 +937,7 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
       nullsim[i] = null_simu[i];
     }
     pv = (double)count_if(nullsim.begin(), nullsim.end(), [&beastStat](double x) { return (x >= beastStat); }) / (double)l;
-    List L = List::create(Named("Interaction") = beastinter, Named("BEAST.Statistic") = beastStat, Named("p.value") = pv);
+    List L = List::create(Named("Interaction") = bet.getBeastInteraction(), Named("BEAST.Statistic") = beastStat, Named("p.value") = pv);
     return L;
   }else{
     // 1-dim: only simulation
@@ -1017,7 +1017,7 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
 
     pv = (double)count_if(nullD.begin(), nullD.end(), [&beastStat](double x) { return (x >= beastStat); }) / (double)numPerm;
 
-    List L = List::create(Named("Interaction") = beastinter, Named("BEAST.Statistic") = beastStat, Named("Null.Distribution") = nullD, Named("p.value") = pv);
+    List L = List::create(Named("Interaction") = bet.getBeastInteraction(), Named("BEAST.Statistic") = beastStat, Named("Null.Distribution") = nullD, Named("p.value") = pv);
 
     return L;
   }

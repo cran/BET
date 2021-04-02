@@ -1,9 +1,9 @@
-6a5dbcd4487a9b3ec9c7e787ab8f1079 *DESCRIPTION
+f692fd2aca95664435e15a903c7bc7ec *DESCRIPTION
 a9606ed83dfea56a23119d78912615bb *NAMESPACE
 8aacfc27cbc20f12e15e5c82c614c6e4 *R/RcppExports.R
 6a67ab71a0b0cd2a7a41244029d4156e *R/plot.R
 e148e788be297627d911ca8017df9c99 *R/star-data.R
-84c196a1558e2d66c3c653096f85021e *build/partial.rdb
+4759be132e871ab41a89488aa92ee4ee *build/partial.rdb
 fc29ab81a05b60ce67021837a7b72d37 *data/star.rda
 b6a0cf1aba78e818c67db512387d2b6a *man/BEAST_null.Rd
 787ab1a18a81b880ed657ac2d6c1b519 *man/BET.Rd
@@ -14,7 +14,7 @@ efc10eb10276c6280c1634a45940100a *man/BETs.Rd
 4357cff8c64096b8dfc8f8e2bc7fc4a0 *man/star.Rd
 caa48e0cc4b4bf34a738b2ef005aa08b *man/symm.Rd
 d35f76ce80ff021fe446dbd15046ed49 *src/BET.h
-5148483ce2fe5f22b742daca66fcb019 *src/BET3.cpp
+dad9baa1fd9b675f4b8de5190e0c594e *src/BET3.cpp
 87e492d080d3fd363139e07356c0fb45 *src/Makevars
 28fb34ca043a2a9953885a9e31215705 *src/Makevars.win
 c93079b41665bde2d0a00c19ebd5e3f8 *src/RcppExports.cpp
