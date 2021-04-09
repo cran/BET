@@ -39,8 +39,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // BeastCpp
-List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double lambda, bool test_uniformity, bool test_independence, List& independence_index, NumericVector& null_simu, String method, int numPerm);
-RcppExport SEXP _BET_BeastCpp(SEXP X_RSEXP, SEXP dSEXP, SEXP mSEXP, SEXP BSEXP, SEXP unifSEXP, SEXP lambdaSEXP, SEXP test_uniformitySEXP, SEXP test_independenceSEXP, SEXP independence_indexSEXP, SEXP null_simuSEXP, SEXP methodSEXP, SEXP numPermSEXP) {
+List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double lambda, bool test_uniformity, bool test_independence, List& independence_index, String method, int numPerm);
+RcppExport SEXP _BET_BeastCpp(SEXP X_RSEXP, SEXP dSEXP, SEXP mSEXP, SEXP BSEXP, SEXP unifSEXP, SEXP lambdaSEXP, SEXP test_uniformitySEXP, SEXP test_independenceSEXP, SEXP independence_indexSEXP, SEXP methodSEXP, SEXP numPermSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -53,10 +53,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type test_uniformity(test_uniformitySEXP);
     Rcpp::traits::input_parameter< bool >::type test_independence(test_independenceSEXP);
     Rcpp::traits::input_parameter< List& >::type independence_index(independence_indexSEXP);
-    Rcpp::traits::input_parameter< NumericVector& >::type null_simu(null_simuSEXP);
     Rcpp::traits::input_parameter< String >::type method(methodSEXP);
     Rcpp::traits::input_parameter< int >::type numPerm(numPermSEXP);
-    rcpp_result_gen = Rcpp::wrap(BeastCpp(X_R, d, m, B, unif, lambda, test_uniformity, test_independence, independence_index, null_simu, method, numPerm));
+    rcpp_result_gen = Rcpp::wrap(BeastCpp(X_R, d, m, B, unif, lambda, test_uniformity, test_independence, independence_index, method, numPerm));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -85,7 +84,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_BET_symmCpp", (DL_FUNC) &_BET_symmCpp, 6},
     {"_BET_BETCpp", (DL_FUNC) &_BET_BETCpp, 7},
-    {"_BET_BeastCpp", (DL_FUNC) &_BET_BeastCpp, 12},
+    {"_BET_BeastCpp", (DL_FUNC) &_BET_BeastCpp, 11},
     {"_BET_nullCpp", (DL_FUNC) &_BET_nullCpp, 11},
     {NULL, NULL, 0}
 };

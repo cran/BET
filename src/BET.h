@@ -30,7 +30,8 @@ namespace N
 		std::vector<std::string> getBinary();
 		void Beast(std::size_t m, std::size_t B, double lambda, bool test_uniformity, bool test_independence, std::vector<std::vector<std::size_t>>& independence_index);
 		double getBeastStat();
-		std::vector<std::vector<int>> getBeastInteraction();
+		// std::vector<std::vector<int>> getBeastInteraction();
+		std::string getBeastInteraction();
 		BETfunction(std::vector<std::vector<double>>& X_R, int depth, bool unif, bool asymptotic, bool test_uniformity, bool test_independence, std::vector<std::vector<std::size_t>>& independence_index);
 
 	   private:
@@ -52,9 +53,11 @@ namespace N
 		std::vector<std::vector<int>> inter_mat;
 		std::vector<std::vector<std::size_t>> allidx;
 		std::vector<std::size_t> thread;
-		std::map<std::vector<int>, int> countInteraction;
-		std::vector<int> freqInter;
-		std::vector<std::vector<int>> BeastInter;
+		// std::map<std::vector<int>, int> countInteraction;
+		std::unordered_map<std::string, int> countInteraction;
+		// std::vector<int> freqInter;
+		// std::vector<std::vector<int>> BeastInter;
+		std::string freqInter;
 		int Stats = 0;
 		double BeastStat = 0;
 		double pvalue = 0;

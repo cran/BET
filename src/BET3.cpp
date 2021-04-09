@@ -341,7 +341,8 @@ vector<int> BETfunction::symmstats(vector<int>& countValues, vector<vector<vecto
   size_t max_idx = distance(symmstats.begin(), findMax);
 
   // max interaction index
-  vector<int> max_interaction = inter_idx[max_idx];
+  // vector<int> max_interaction = inter_idx[max_idx];
+  string max_interaction = binary_inter[max_idx];
 
   // count most frequent max interaction
   countInteraction[max_interaction]++;
@@ -558,10 +559,16 @@ double BETfunction::getBeastStat()
   return BeastStat;
 }
 
-vector<vector<int>> BETfunction::getBeastInteraction()
+// vector<vector<int>> BETfunction::getBeastInteraction()
+// {
+//   return BeastInter;
+// }
+
+string BETfunction::getBeastInteraction()
 {
-  return BeastInter;
+  return freqInter;
 }
+
 
 void BETfunction::Beast(size_t m, size_t B, double lambda, bool test_uniformity, bool test_independence, vector<vector<size_t>>& independence_index)
 {
@@ -631,15 +638,17 @@ void BETfunction::Beast(size_t m, size_t B, double lambda, bool test_uniformity,
     return p1.second < p2.second;
   });
 
+
+
   // if(debug){
   //   cout <<"interaction : " << mostFreq->first << endl;
   // }
 
   freqInter = mostFreq->first;
 
-  for(size_t i = 0; i < p; i++){
-    BeastInter.push_back(inter_mat[freqInter[i]]);
-  }
+  // for(size_t i = 0; i < p; i++){
+  //   BeastInter.push_back(inter_mat[freqInter[i]]);
+  // }
 
 }
 
@@ -881,7 +890,7 @@ List BETCpp(NumericMatrix& X_R, int d, bool unif, bool asymptotic, bool test_uni
 }
 
 //[[Rcpp::export]]
-List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double lambda, bool test_uniformity, bool test_independence, List& independence_index, NumericVector& null_simu, String method, int numPerm)
+List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double lambda, bool test_uniformity, bool test_independence, List& independence_index, String method, int numPerm)
 {
   vector<vector<double>> X = imp(X_R);
   // independence index
@@ -929,17 +938,19 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
   if(method == "NA"){
     List L = List::create(Named("Interaction") = bet.getBeastInteraction(), Named("BEAST.Statistic") = beastStat);
     return L;
-  }else if(method == "Y"){
-    // user provide null distribution
-    size_t l = null_simu.size();
-    vector<double> nullsim(l);
-    for(size_t i = 0; i < l; i++){
-      nullsim[i] = null_simu[i];
-    }
-    pv = (double)count_if(nullsim.begin(), nullsim.end(), [&beastStat](double x) { return (x >= beastStat); }) / (double)l;
-    List L = List::create(Named("Interaction") = bet.getBeastInteraction(), Named("BEAST.Statistic") = beastStat, Named("p.value") = pv);
-    return L;
-  }else{
+  }
+  // else if(method == "Y"){
+  //   // user provide null distribution
+  //   size_t l = null_simu.size();
+  //   vector<double> nullsim(l);
+  //   for(size_t i = 0; i < l; i++){
+  //     nullsim[i] = null_simu[i];
+  //   }
+  //   pv = (double)count_if(nullsim.begin(), nullsim.end(), [&beastStat](double x) { return (x >= beastStat); }) / (double)l;
+  //   List L = List::create(Named("Interaction") = bet.getBeastInteraction(), Named("BEAST.Statistic") = beastStat, Named("p.value") = pv);
+  //   return L;
+  // }
+  else{
     // 1-dim: only simulation
     if(p == 1){
       method = "s";

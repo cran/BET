@@ -9,8 +9,8 @@ BETCpp <- function(X_R, d, unif, asymptotic, test_uniformity, test_independence,
     .Call('_BET_BETCpp', PACKAGE = 'BET', X_R, d, unif, asymptotic, test_uniformity, test_independence, independence_index)
 }
 
-BeastCpp <- function(X_R, d, m, B, unif, lambda, test_uniformity, test_independence, independence_index, null_simu, method, numPerm) {
-    .Call('_BET_BeastCpp', PACKAGE = 'BET', X_R, d, m, B, unif, lambda, test_uniformity, test_independence, independence_index, null_simu, method, numPerm)
+BeastCpp <- function(X_R, d, m, B, unif, lambda, test_uniformity, test_independence, independence_index, method, numPerm) {
+    .Call('_BET_BeastCpp', PACKAGE = 'BET', X_R, d, m, B, unif, lambda, test_uniformity, test_independence, independence_index, method, numPerm)
 }
 
 nullCpp <- function(n, p, d, m, B, lambda, test_uniformity, test_independence, independence_index, method, numPerm) {

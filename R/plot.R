@@ -184,25 +184,34 @@ BEAST <- function(X, d, subsample.percent = 1/2, B = 100, unif.margin = FALSE, l
   }
 
   if(is.null(null.simu)){
-    null.simu <- c(0);
+    # null.simu <- c(0);
     if(!p.value.method %in% c("p", "s")){
       p.value.method <- "NA"
       num.permutations <- 1
+    }else if(p.value.method == "p"){
+      num.permutations <- 100
+    }else if(p.value.method == "s"){
+      num.permutations <- 1000
     }
+
+    m <- n * subsample.percent
+
+    L = BeastCpp(X, d, m, B, unif.margin, lambda, test.uniformity, test.independence, index, p.value.method, num.permutations)
+    L$Interaction = matrix(as.numeric(unlist(strsplit(L$Interaction, ""))), nrow = p, byrow = TRUE)
+    return(L)
   }else{
-    p.value.method <- "Y"
+    p.value.method <- "NA"
     num.permutations <- 1
+
+    m <- n * subsample.percent
+
+    L = BeastCpp(X, d, m, B, unif.margin, lambda, test.uniformity, test.independence, index, p.value.method, num.permutations)
+    L$"p.value" = sum(null.simu >= L$"BEAST.Statistic")/length(null.simu)
+    L$Interaction = matrix(as.numeric(unlist(strsplit(L$Interaction, ""))), nrow = p, byrow = TRUE)
+    return(L)
   }
 
-  if(p.value.method == "p"){
-    num.permutations <- 100
-  }else if(p.value.method == "s"){
-    num.permutations <- 1000
-  }
 
-  m <- n * subsample.percent
-
-  BeastCpp(X, d, m, B, unif.margin, lambda, test.uniformity, test.independence, index, null.simu, p.value.method, num.permutations)
 }
 
 BEAST.null.simu <- function(n, p, d, subsample.percent = 1/2, B = 100, lambda = NULL, test.independence = FALSE, index = NULL, test.uniformity = TRUE, p.value.method = "p", num.permutations = NULL){
