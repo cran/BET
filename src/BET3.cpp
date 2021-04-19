@@ -301,7 +301,7 @@ vector<int> BETfunction::symmstats(vector<int>& countValues, vector<vector<vecto
   size_t total = (int)round(pow(2, p*d));
   vector<int> symmstats(total, 0);
   size_t numCount = countValues.size();
-  vector<vector<int>> inter_idx(total);
+  // vector<vector<int>> inter_idx(total);
 
 #ifdef _OPENMP
   omp_set_num_threads(numThread);
@@ -312,15 +312,15 @@ vector<int> BETfunction::symmstats(vector<int>& countValues, vector<vector<vecto
     //		double wtime = omp_get_wtime();
     for (size_t i = thread[th - 1]; i < thread[th]; i++){
       string bi = "";
-      vector<int> iidx(p);
+      // vector<int> iidx(p);
       for (size_t v = 0; v < p; v++){
         // store interaction
         out_symminter[v][i] = inter[allidx[i][v]];
         bi += inter[allidx[i][v]];
-        iidx[v] = allidx[i][v];
+        // iidx[v] = allidx[i][v];
       }
       binary_inter[i] = bi;
-      inter_idx[i] = iidx;
+      // inter_idx[i] = iidx;
       if ( ( (count(allidx[i].begin(), allidx[i].end(), 0) <= (int)(p - 2)) && (testUnif ||isIndex(allidx[i]) ) ) || (p == 1 && i > 0) ){
         int loc0 = 1, sum = 0;
         for (size_t j = 0; j < numCount; j++){
@@ -935,10 +935,6 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
   //     beastinter(i, j) = bet.getBeastInteraction()[i][j];
   // }
 
-  if(method == "NA"){
-    List L = List::create(Named("Interaction") = bet.getBeastInteraction(), Named("BEAST.Statistic") = beastStat);
-    return L;
-  }
   // else if(method == "Y"){
   //   // user provide null distribution
   //   size_t l = null_simu.size();
@@ -950,7 +946,11 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
   //   List L = List::create(Named("Interaction") = bet.getBeastInteraction(), Named("BEAST.Statistic") = beastStat, Named("p.value") = pv);
   //   return L;
   // }
-  else{
+
+  if(method == "NA"){
+    List L = List::create(Named("Interaction") = bet.getBeastInteraction(), Named("BEAST.Statistic") = beastStat);
+    return L;
+  }else{
     // 1-dim: only simulation
     if(p == 1){
       method = "s";

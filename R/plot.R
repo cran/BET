@@ -80,7 +80,7 @@ bet.plot <- function(X, d, unif.margin = FALSE, cex=0.5, ...){
   plot.bid(d, be.ind1, be.ind2)
 }
 
-BET <- function(X, d, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE, test.independence = FALSE, index = NULL, test.uniformity = TRUE){
+MaxBET <- function(X, d, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE, test.independence = FALSE, index = NULL, test.uniformity = TRUE){
   n <- nrow(X)
   p <- ncol(X)
   if (p == 1){
@@ -114,10 +114,10 @@ symm <- function(X, d, unif.margin = FALSE, test.independence = FALSE, index = N
   symmCpp(X, d, unif.margin, test.uniformity, test.independence, index)
 }
 
-BETs <- function(X, d.max=4, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE, test.independence = FALSE, index = NULL, test.uniformity = TRUE){
+MaxBETs <- function(X, d.max=4, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE, test.independence = FALSE, index = NULL, test.uniformity = TRUE){
   n <- nrow(X)
   p <- ncol(X)
-  temp <- BET(X, 1, unif.margin, asymptotic, FALSE, test.independence, index, test.uniformity) #BET
+  temp <- MaxBET(X, 1, unif.margin, asymptotic, FALSE, test.independence, index, test.uniformity) #BET
   bet.adj.pvalues <- rep(NA,d.max)
   bet.extreme.asymmetry <- rep(NA,d.max)
 
@@ -134,7 +134,7 @@ BETs <- function(X, d.max=4, unif.margin = FALSE, asymptotic = TRUE, plot = FALS
     return(list(bet.s.pvalue=temp$p.value.bonf,bet.s.extreme.asymmetry=temp$Extreme.Asymmetry, bet.s.index=temp$Interaction, bet.s.zstatistic=temp$z.statistic))
   }else{
     for (id in 2:d.max){
-      tempa <- BET(X, id, unif.margin, asymptotic, FALSE, test.independence, index, test.uniformity) #BET
+      tempa <- MaxBET(X, id, unif.margin, asymptotic, FALSE, test.independence, index, test.uniformity) #BET
 
       max.abs.count.interaction <- abs(tempa$Extreme.Asymmetry)
       bet.extreme.asymmetry[id] <- tempa$Extreme.Asymmetry

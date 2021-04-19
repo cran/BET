@@ -1,8 +1,8 @@
 useDynLib(BET)
-export(BET)
+export(MaxBET)
 export(symm)
 export(bet.plot)
-export(BETs)
+export(MaxBETs)
 export(BEAST)
 export(BEAST.null.simu)
 

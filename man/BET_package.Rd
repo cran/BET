@@ -7,11 +7,12 @@ The \code{BET} package provides functions for nonparametric detection of nonunif
 }
 \section{BET functions}{
 
-\code{\link{BET}}
+\code{\link{MaxBET}}
 \code{\link{symm}}
 \code{\link{bet.plot}}
-\code{\link{BETs}}
+\code{\link{MaxBETs}}
 \code{\link{BEAST}}
+\code{\link{BEAST.null.simu}}
 }
 
 \section{Reference(s)}{

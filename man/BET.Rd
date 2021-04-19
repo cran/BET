@@ -1,8 +1,8 @@
-\name{BET}
-\alias{BET}
+\name{MaxBET}
+\alias{MaxBET}
 \title{Binary Expansion Testing at a Certain Depth}
 \usage{
-BET(
+MaxBET(
   X,
   d,
   unif.margin = FALSE,
@@ -37,7 +37,7 @@ BET(
 }
 }
 \details{
-\code{BET} tests the independence or uniformity by considering the maximal magnitude of the symmetry statistics in the \eqn{sigma}-field generated from marginal binary expansions at the depth \code{d}.
+\code{MaxBET} tests the independence or uniformity by considering the maximal magnitude of the symmetry statistics in the \eqn{sigma}-field generated from marginal binary expansions at the depth \code{d}.
 }
 \value{
 \item{Interaction}{a dataframe with \eqn{p} columns, where \eqn{p} is the number of columns of \code{X}. It displays the interactions where the extreme symmetry statistics happens. For each column in \code{X}, we use a binary index to indicate binary variables involved in the extreme symmetry statistic.}
@@ -46,11 +46,11 @@ BET(
 \item{z.statistic}{normal approximation of the test statistic.}
 }
 \description{
-\code{BET} stands for Binary Expansion Testing. It is used for nonparametric detection of nonuniformity or dependence. It can be used to test whether a column vector is [0, 1]-uniformly distributed. It can also be used to detect dependence between columns of a matrix \code{X}, if \code{X} has more than one column.
+\code{MaxBET} stands for Binary Expansion Testing. It is used for nonparametric detection of nonuniformity or dependence. It can be used to test whether a column vector is [0, 1]-uniformly distributed. It can also be used to detect dependence between columns of a matrix \code{X}, if \code{X} has more than one column.
 }
 \examples{
 v <- runif(128, -pi, pi)
 X1 <- cos(v) + 2.5 * rnorm(128, 0, 1/20)
 X2 <- sin(v) + 2.5 * rnorm(128, 0, 1/20)
-BET(cbind(X1, X2), 3, asymptotic = FALSE)
+MaxBET(cbind(X1, X2), 3, asymptotic = FALSE)
 }

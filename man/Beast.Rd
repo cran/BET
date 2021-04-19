@@ -60,9 +60,13 @@ BEAST(
 \code{BEAST} (Binary Expansion Approximate Symmetry Test) is used for nonparametric detection of nonuniformity or dependence.
 }
 \examples{
+## Elapsed times 2.975584 secs
+## Measured in R 4.0.2, 32 bit, on a processor 3.3 GHz 6-Core Intel Core i5 under MacOS.
+\dontrun{
 X1 <- rnorm(128)
 X2 <- rnorm(128)
 Y <- 0.2 * (X1 + X2) + sqrt(0.92) * rnorm(128)
 BEAST(cbind(X1, X2, Y), 3, test.independence = TRUE,
-index = list(c(1,2), c(3)), test.uniformity = FALSE, p.value.method = NA)
+index = list(c(1,2), c(3)), test.uniformity = FALSE, p.value.method = "p")
+}
 }
