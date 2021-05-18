@@ -63,10 +63,10 @@ BEAST(
 ## Elapsed times 2.975584 secs
 ## Measured in R 4.0.2, 32 bit, on a processor 3.3 GHz 6-Core Intel Core i5 under MacOS.
 \dontrun{
-X1 <- rnorm(128)
-X2 <- rnorm(128)
-Y <- 0.2 * (X1 + X2) + sqrt(0.92) * rnorm(128)
-BEAST(cbind(X1, X2, Y), 3, test.independence = TRUE,
+x1 = runif(128)
+x2 = runif(128)
+y = sin(4*pi*(x1 + x2)) + 0.8*rnorm(128)
+BEAST(cbind(x1, x2, y), 3, test.independence = TRUE,
 index = list(c(1,2), c(3)), test.uniformity = FALSE, p.value.method = "p")
 }
 }
