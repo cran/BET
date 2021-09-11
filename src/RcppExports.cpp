@@ -6,18 +6,15 @@
 using namespace Rcpp;
 
 // symmCpp
-List symmCpp(NumericMatrix& X_R, int d, bool unif, bool test_uniformity, bool test_independence, List& independence_index);
-RcppExport SEXP _BET_symmCpp(SEXP X_RSEXP, SEXP dSEXP, SEXP unifSEXP, SEXP test_uniformitySEXP, SEXP test_independenceSEXP, SEXP independence_indexSEXP) {
+List symmCpp(NumericMatrix& X_R, int d, bool unif);
+RcppExport SEXP _BET_symmCpp(SEXP X_RSEXP, SEXP dSEXP, SEXP unifSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix& >::type X_R(X_RSEXP);
     Rcpp::traits::input_parameter< int >::type d(dSEXP);
     Rcpp::traits::input_parameter< bool >::type unif(unifSEXP);
-    Rcpp::traits::input_parameter< bool >::type test_uniformity(test_uniformitySEXP);
-    Rcpp::traits::input_parameter< bool >::type test_independence(test_independenceSEXP);
-    Rcpp::traits::input_parameter< List& >::type independence_index(independence_indexSEXP);
-    rcpp_result_gen = Rcpp::wrap(symmCpp(X_R, d, unif, test_uniformity, test_independence, independence_index));
+    rcpp_result_gen = Rcpp::wrap(symmCpp(X_R, d, unif));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -82,7 +79,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_BET_symmCpp", (DL_FUNC) &_BET_symmCpp, 6},
+    {"_BET_symmCpp", (DL_FUNC) &_BET_symmCpp, 3},
     {"_BET_BETCpp", (DL_FUNC) &_BET_BETCpp, 7},
     {"_BET_BeastCpp", (DL_FUNC) &_BET_BeastCpp, 11},
     {"_BET_nullCpp", (DL_FUNC) &_BET_nullCpp, 11},

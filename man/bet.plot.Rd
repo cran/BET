@@ -2,15 +2,15 @@
 \alias{bet.plot}
 \title{Plotting Binary Expansion Testing (2-dimensions)}
 \usage{
-bet.plot(X, d, unif.margin = FALSE, cex=0.5, ...)
+bet.plot(X, dep, unif.margin = FALSE, cex=0.5, ...)
 }
 \arguments{
 \item{X}{a matrix with two columns.}
 
-\item{d}{depth of BET.}
+\item{dep}{depth of BET.}
 
 \item{unif.margin}{
-  logicals. If \code{TRUE} the data has been uniformed based on empirical cumulative distribution function. Default to be \code{FALSE} and the function uniforms the data.
+  logicals. If \code{TRUE} the marginal distribution is known to be Uniform[0,1]. Default is \code{FALSE}, and empirical cdf transformation will be applied to each marginal distribution.
   }
 
 \item{cex}{number indicating the amount by which plotting text and symbols should be scaled relative to the default.}
@@ -20,7 +20,7 @@ bet.plot(X, d, unif.margin = FALSE, cex=0.5, ...)
 \description{
 \code{bet.plot} shows the cross interaction of the strongest asymmetry, which the BET returns with the rejection of independence null.
 This function only works for the test on two variables, that is, \code{X} can only have two columns.
-There are \eqn{2^{2d} - 1} nontrivial binary variables in the \eqn{\sigma}-field and \eqn{(2^d - 1)^2} of them are cross interactions, whose positive regions are in plotted in white and whose negative regions are plotted in blue.
+There are \eqn{2^{2dep} - 1} nontrivial binary variables in the \eqn{\sigma}-field and \eqn{(2^dep - 1)^2} of them are cross interactions, whose positive regions are in plotted in white and whose negative regions are plotted in blue.
 \code{plot.bet} shows the cross interaction where the difference of number of observations in the positive and negative region is largest.
 }
 \examples{

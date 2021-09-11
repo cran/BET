@@ -171,7 +171,7 @@ vector<vector<int>> BETfunction::ecdf_loc(vector<vector<double>>& X)
       // already uniformed
       for (int j = 0; j < p; j++){
         for (int i = 0; i < n; i++){
-          C[i][j] = (int)X[i][j];
+          C[i][j] = (int) ceil(X[i][j] * (int)round(pow(2, d)));
         }
       }
       else
@@ -608,30 +608,21 @@ void BETfunction::Beast(size_t m, size_t B, double lambda, bool test_uniformity,
   //   cout << "  T1" <<endl;
   // }
 
-  // second subsample
-  vector<double> S2 = subsample(m, B);
+  vector<double> symm_double;
+  copy(out_symmstats.begin(), out_symmstats.end(), back_inserter(symm_double));
 
-  // if(debug){
-  //   for(size_t i = 0; i < S2.size(); i++){
-  //     cout << S2[i] << " ";
-  //   }
-  //   cout << "  S2" <<endl;
-  // }
+  vector<double> T = softthreshold(symm_double, lambda);
 
-  //soft-threshold
-  vector<double> T2 = softthreshold(S2, lambda);
-  // if(debug){
-  //   for(size_t i = 0; i < S1.size(); i++){
-  //     cout << T2[i] << " ";
-  //   }
-  //   cout << "  T2" <<endl;
-  // }
-
-  for(size_t i = 0; i < S1.size(); i++){
-    BeastStat += T1[i]*T2[i];
+  double T_module = 0;
+  for(size_t i = 0; i < T.size(); i++){
+    T_module += T[i] * T[i];
   }
 
-  // BeastStat = pow(BeastStat, 2);
+  for(size_t i = 0; i < S1.size(); i++){
+    BeastStat += T1[i]*T[i];
+  }
+
+  BeastStat = BeastStat/sqrt(T_module);
 
   using pair_type = decltype(countInteraction)::value_type;
   auto mostFreq = max_element(countInteraction.begin(), countInteraction.end(), [] (const pair_type & p1, const pair_type & p2) {
@@ -672,6 +663,12 @@ BETfunction:: BETfunction(vector<vector<double>>& X_R, int depth, bool unif, boo
 	  for(size_t i = 0; i < p; i++){
 	    indepIndex[0].push_back(i);
 	  }
+	}
+
+	int bonf = 1;
+	for (size_t i = 0; i < indepIndex.size(); i++){
+	  int l = (int)round(pow(2, (int)indepIndex[i].size()*d)) - 1;
+	  bonf = bonf * l;
 	}
 
 	bid = BIDs();
@@ -772,12 +769,15 @@ BETfunction:: BETfunction(vector<vector<double>>& X_R, int depth, bool unif, boo
 	  if (p == 1){
 	    pvalue = (1-0.5 * erfc(-z * sqrt(0.5))) * ((int)round(pow(2, (int)d)) - 1) * 2;
 	  }else{
-	    pvalue = (1-0.5 * erfc(-z * sqrt(0.5))) * ((int)round(pow(2, (int)p*d)) - (int)p*((int)round(pow(2, d)) - 1) - 1) * 2;
+	    // pvalue = (1-0.5 * erfc(-z * sqrt(0.5))) * ((int)round(pow(2, (int)p*d)) - (int)p*((int)round(pow(2, d)) - 1) - 1) * 2;
+	    pvalue = (1-0.5 * erfc(-z * sqrt(0.5))) * bonf * 2;
+	    // pvalue = (1-0.5 * erfc(-z * sqrt(0.5))) * out * 2;
 	  }
 	}else if (unifMargin){
 	  // p value: if unif >> binomial
 	  // bonferroni
-	  pvalue = ((int)round(pow(2, (int)p*d)) - (int)p*((int)round(pow(2, d)) - 1) - 1) * pbinom(n, (abs(Stats) + n) / 2, 0.5);
+	  // pvalue = ((int)round(pow(2, (int)p*d)) - (int)p*((int)round(pow(2, d)) - 1) - 1) * pbinom(n, (abs(Stats) + n) / 2, 0.5);
+	  pvalue = bonf * pbinom(n, (abs(Stats) + n) / 2, 0.5);
 	}else if (p == 1){
 	  // p value: p = 1 >> binomial
 	  // bonferroni
@@ -788,7 +788,8 @@ BETfunction:: BETfunction(vector<vector<double>>& X_R, int depth, bool unif, boo
 	  int n00 = (n + Stats) / 2 - n11;
 	  int n10 = Sa - n11;
 	  int n01 = Sb - n11;
-	  pvalue = ((int)round(pow(2, (int)p*d)) - (int)p*((int)round(pow(2, d)) - 1) - 1) * fisherExact(n11, n01, n10, n00);
+	  // pvalue = ((int)round(pow(2, (int)p*d)) - (int)p*((int)round(pow(2, d)) - 1) - 1) * fisherExact(n11, n01, n10, n00);
+	  pvalue = bonf * fisherExact(n11, n01, n10, n00);
 	}
 
 	if (pvalue > 1){
@@ -812,25 +813,17 @@ vector<vector<double>> imp(NumericMatrix& X)
 }
 
 //[[Rcpp::export]]
-List symmCpp(NumericMatrix& X_R, int d, bool unif, bool test_uniformity, bool test_independence, List& independence_index)
+List symmCpp(NumericMatrix& X_R, int d, bool unif)
 {
   vector<vector<double>> X = imp(X_R);
-  vector<vector<size_t>> idx;
-  if(test_independence){
-    for(auto& v: independence_index){
-      idx.push_back(v);
-    }
-  }else{
-    idx = {{}};
-  }
-  // vector<vector<size_t>> indp = {{}};
 
-  BETfunction bet(X, d, unif, 1, test_uniformity, test_independence, idx);
+  vector<vector<size_t>> idx = {{}};;
+  BETfunction bet(X, d, unif, 1, 1, 0, idx);
   size_t p = X_R.ncol();
   // size_t length = (int)round(pow(2, (int)p*d));
 
   DataFrame symm = DataFrame::create(
-    Named("SymmetryStatistics") = bet.getSymmStats()
+    Named("Statistics") = bet.getSymmStats()
   );
 
   // for (size_t i = p; i > 1; i--){
@@ -850,11 +843,11 @@ List symmCpp(NumericMatrix& X_R, int d, bool unif, bool test_uniformity, bool te
     symm.push_front(bet.getSymmInteraction()[i-1], "X" + to_string(i));
   }
 
-  symm.push_front(bet.getBinary(), "Binary Index");
+  symm.push_front(bet.getBinary(), "BinaryIndex");
 
-  List L = List::create(Named("SymmetryStatistics") = DataFrame(symm));
+  // List L = List::create(Named("SymmetryStatistics") = DataFrame(symm));
 
-  return L;
+  return DataFrame(symm);
 
 }
 
@@ -929,24 +922,6 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
 
   double pv;
 
-  // IntegerMatrix beastinter(p, d);
-  // for(size_t i = 0; i < p; i++){
-  //   for(size_t j = 0; j < d; j++)
-  //     beastinter(i, j) = bet.getBeastInteraction()[i][j];
-  // }
-
-  // else if(method == "Y"){
-  //   // user provide null distribution
-  //   size_t l = null_simu.size();
-  //   vector<double> nullsim(l);
-  //   for(size_t i = 0; i < l; i++){
-  //     nullsim[i] = null_simu[i];
-  //   }
-  //   pv = (double)count_if(nullsim.begin(), nullsim.end(), [&beastStat](double x) { return (x >= beastStat); }) / (double)l;
-  //   List L = List::create(Named("Interaction") = bet.getBeastInteraction(), Named("BEAST.Statistic") = beastStat, Named("p.value") = pv);
-  //   return L;
-  // }
-
   if(method == "NA"){
     List L = List::create(Named("Interaction") = bet.getBeastInteraction(), Named("BEAST.Statistic") = beastStat);
     return L;
@@ -958,13 +933,8 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
 
     if(method == "p"){
       // permutation
-      // for(size_t j = 0; j < p; j++){
-      //   for(size_t i = 0; i < n; i++){
-      //     indp[i][j] = runif(1);
-      //   }
-      // }
       for(size_t j = 0; j < p; j++){
-        indp_R(_, j) = rnorm(n);
+        indp_R(_, j) = runif(n);
       }
       indp  = imp(indp_R);
       vector<vector<double>> newdata = indp;
@@ -1016,8 +986,13 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
         //     indp[i][j] = dis(gen);
         //   }
         // }
-        for(size_t j = 0; j < p; j++){
-          indp_R(_, j) = rnorm(n);
+        if(p == 1){
+          // p=1: uniform 0, 1
+          indp_R(_, 0) = runif(n);
+        }else{
+          for(size_t j = 0; j < p; j++){
+            indp_R(_, j) = runif(n);
+          }
         }
         indp = imp(indp_R);
         BETfunction bet0(indp, d, unif, 1, 1, 0, idx);
@@ -1068,7 +1043,7 @@ NumericVector nullCpp(size_t n, size_t p, int d, size_t m, size_t B, double lamb
   if(method == "p"){
     // permutation
     for(size_t j = 0; j < p; j++){
-      indp_R(_, j) = rnorm(n);
+      indp_R(_, j) = runif(n);
     }
     indp  = imp(indp_R);
     vector<vector<double>> newdata = indp;
@@ -1118,7 +1093,7 @@ NumericVector nullCpp(size_t n, size_t p, int d, size_t m, size_t B, double lamb
       //   }
       // }
       for(size_t j = 0; j < p; j++){
-        indp_R(_, j) = rnorm(n);
+        indp_R(_, j) = runif(n);
       }
       indp = imp(indp_R);
       BETfunction bet0(indp, d, 0, 1, 1, 0, idx);

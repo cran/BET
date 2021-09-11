@@ -13,7 +13,7 @@ This data set collects the galactic coordinates of the 256 brightest stars in th
 }
 \examples{
 data(star)
-MaxBETs(cbind(star$x.raw, star$y.raw), asymptotic = FALSE, plot = TRUE)
+MaxBETs(cbind(star$x.raw, star$y.raw), asymptotic = FALSE, plot = TRUE, index = list(c(1), c(2)))
 }
 \keyword{datasets}
 

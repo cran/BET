@@ -9,36 +9,28 @@ Symmetry Statistics for all Interactions
 \usage{
 symm(
   X,
-  d,
+  dep,
   unif.margin = FALSE,
-  test.independence = FALSE,
-  index = NULL,
-  test.uniformity = TRUE
+  print.sample.size = TRUE
 )
 }
 \arguments{
   \item{X}{
 a matrix to be tested.
 }
-  \item{d}{
+  \item{dep}{
 depth of the marginal binary expansions.
 }
   \item{unif.margin}{
   logicals. If \code{TRUE} the data has been uniformed based on empirical cumulative distribution function. Default to be \code{FALSE} and the function uniforms the data.
   }
-  \item{test.independence}{
-  logicals. If \code{TRUE}, test independence among the variables listed in \code{index}. Default to be \code{FALSE}
-}
-  \item{index}{
-    a list of indices. If provided, test the independence among two or more groups of variables, for example, \eqn{(X_1, X_2)} and \eqn{X_3}.
-  }
-  \item{test.uniformity}{
-    logicals. If \code{TRUE}, test mutual independence among all variables.
+  \item{print.sample.size}{
+  logicals. If \code{TRUE} print the sample size. Default to be \code{TRUE}.
   }
 }
 
 \value{
-\item{SymmetryStatistics}{a dataframe with \eqn{(p+2)} columns, where \eqn{p} is the number of columns of \code{X}. The first column gives the binary index for all variables, the next \eqn{p} columns displays all the interactions of respective variables, the last column of \code{SymmetryStatistics} gives the respective symmetry statistic.}
+The result is a dataframe with \eqn{(p+2)} columns, where \eqn{p} is the number of columns of \code{X}. The first column gives the binary index for all variables, the next \eqn{p} columns displays all the interactions of respective variables, the last column of \code{Statistics} gives the respective symmetry statistic.
 }
 
 \examples{

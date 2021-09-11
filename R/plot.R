@@ -64,9 +64,9 @@ plot.bid <- function(depth, be.ind1, be.ind2){
 bet <- function(X, d, unif.margin = FALSE, cex=0.5, ...) UseMethod("bet")
 
 
-bet.plot <- function(X, d, unif.margin = FALSE, cex=0.5, ...){
+bet.plot <- function(X, dep, unif.margin = FALSE, cex=0.5, ...){
   if(ncol(X) != 2) stop("X does not have two columns.")
-  bet.res <- BETCpp(X, d, unif.margin, asymptotic = T, test_uniformity = T, test_independence = F, independence_index = list())
+  bet.res <- BETCpp(X, dep, unif.margin, asymptotic = T, test_uniformity = T, test_independence = F, independence_index = list())
   i1 <- as.character(bet.res$Interaction$X1)
   i2 <- as.character(bet.res$Interaction$X2)
   be.ind1 <- unlist(strsplit(i1, " "))[1]
@@ -77,10 +77,13 @@ bet.plot <- function(X, d, unif.margin = FALSE, cex=0.5, ...){
   # par(mgp = c(1.8, 0.5, 0),mar=c(3,3,3,1))
   plot(c(0,1), c(0,1), xlab=expression(U[x]),ylab=expression(U[y]),type = "n")
   points(x,y,mgp = c(1.8, 0.5, 0),xlim=c(0,1),ylim=c(0,1),cex=cex,col=2, pch=16)
-  plot.bid(d, be.ind1, be.ind2)
+  plot.bid(dep, be.ind1, be.ind2)
 }
 
-MaxBET <- function(X, d, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE, test.independence = FALSE, index = NULL, test.uniformity = TRUE){
+MaxBET <- function(X, dep, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE, index = NULL){
+  if(is.vector(X)){
+    X = as.matrix(X, ncol = 1)
+  }
   n <- nrow(X)
   p <- ncol(X)
   if (p == 1){
@@ -88,22 +91,45 @@ MaxBET <- function(X, d, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE, t
       if (X[n][1] > 1 || X[n][1] < 0) stop("Data out of range [0, 1]")
     }
   }
+
+  # independent index
+  # mutual.idx = list()
+  # for(i in 1:p){
+  #   mutual.idx[length(mutual.idx) + 1] = c(i)
+  # }
+  if(is.null(index)){
+    # c(1:p):uniformity
+    index = list(c(1:p))
+    unif.margin = TRUE
+    if(sum(X > 1 | X < 0) > 0) stop("Data out of range [0, 1]")
+    test.uniformity = TRUE
+    test.independence = FALSE
+  }else{
+    test.uniformity = FALSE
+    test.independence = TRUE
+    # test index cover all 1:p for only 1 time
+    v = c()
+    for (i in 1:length(index)) {
+      v = c(v, index[[i]])
+    }
+    if(length(v) != p){
+      stop("index out of range of 1:p")
+    }else if(!all.equal(sort(v), c(1:p))){
+      stop("index should be a list of disjoint subsets of 1:p")
+    }
+  }
+
   if (plot && (p == 2))
-    bet.plot(X, d, unif.margin)
+    bet.plot(X, dep, unif.margin)
   if (plot && (p != 2)) warning("plot not available: X does not have two columns.")
 
-  if (test.uniformity){
-    test.independence <- FALSE
-  }else if ((!test.independence)){
-    stop("Choose uniformity or independence to test.")
-  }else if (is.null(index)){
-    stop("Need a list of index!")
-  }
-
-  BETCpp(X, d, unif.margin, asymptotic, test.uniformity, test.independence, index)
+  BETCpp(X, dep, unif.margin, asymptotic, test.uniformity, test.independence, index)
 }
 
-symm <- function(X, d, unif.margin = FALSE, test.independence = FALSE, index = NULL, test.uniformity = TRUE){
+symm <- function(X, dep, unif.margin = FALSE, print.sample.size = TRUE){
+  if(is.vector(X)){
+    X = as.matrix(X, ncol = 1)
+  }
   n <- nrow(X)
   p <- ncol(X)
   if (p == 1){
@@ -111,13 +137,52 @@ symm <- function(X, d, unif.margin = FALSE, test.independence = FALSE, index = N
       if (X[n][1] > 1 || X[n][1] < 0) stop("Data out of range [0, 1]")
     }
   }
-  symmCpp(X, d, unif.margin, test.uniformity, test.independence, index)
+  res = symmCpp(X, dep, unif.margin)[-1,]
+  res = res[order(res$BinaryIndex),]
+  rownames(res) = 1:nrow(res)
+
+  if(print.sample.size){
+    cat("Sample size: ", n, "\n")
+  }
+
+  return(res)
 }
 
-MaxBETs <- function(X, d.max=4, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE, test.independence = FALSE, index = NULL, test.uniformity = TRUE){
+MaxBETs <- function(X, d.max=4, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE, index = NULL){
+  if(is.vector(X)){
+    X = as.matrix(X, ncol = 1)
+  }
   n <- nrow(X)
   p <- ncol(X)
-  temp <- MaxBET(X, 1, unif.margin, asymptotic, FALSE, test.independence, index, test.uniformity) #BET
+
+  # independent index
+  # mutual.idx = list()
+  # for(i in 1:p){
+  #   mutual.idx[length(mutual.idx) + 1] = c(i)
+  # }
+  if(is.null(index)){
+    # c(1:p):uniformity
+    index = list(c(1:p))
+    unif.margin = TRUE
+    if(sum(X > 1 | X < 0) > 0) stop("Data out of range [0, 1]")
+    test.uniformity = TRUE
+    test.independence = FALSE
+  }else{
+    test.uniformity = FALSE
+    test.independence = TRUE
+    # test index cover all 1:p for only 1 time
+    v = c()
+    for (i in 1:length(index)) {
+      v = c(v, index[[i]])
+    }
+    if(length(v) != p){
+      stop("index out of range of 1:p")
+    }else if(!all.equal(sort(v), c(1:p))){
+      stop("index should be a list of disjoint subsets of 1:p")
+    }
+  }
+
+  temp <- MaxBET(X, 1, unif.margin, asymptotic, FALSE, index) #BET
   bet.adj.pvalues <- rep(NA,d.max)
   bet.extreme.asymmetry <- rep(NA,d.max)
 
@@ -134,7 +199,7 @@ MaxBETs <- function(X, d.max=4, unif.margin = FALSE, asymptotic = TRUE, plot = F
     return(list(bet.s.pvalue=temp$p.value.bonf,bet.s.extreme.asymmetry=temp$Extreme.Asymmetry, bet.s.index=temp$Interaction, bet.s.zstatistic=temp$z.statistic))
   }else{
     for (id in 2:d.max){
-      tempa <- MaxBET(X, id, unif.margin, asymptotic, FALSE, test.independence, index, test.uniformity) #BET
+      tempa <- MaxBET(X, id, unif.margin, asymptotic, FALSE, index) #BET
 
       max.abs.count.interaction <- abs(tempa$Extreme.Asymmetry)
       bet.extreme.asymmetry[id] <- tempa$Extreme.Asymmetry
@@ -162,82 +227,110 @@ MaxBETs <- function(X, d.max=4, unif.margin = FALSE, asymptotic = TRUE, plot = F
   }
 }
 
-BEAST <- function(X, d, subsample.percent = 1/2, B = 100, unif.margin = FALSE, lambda = NULL, test.independence = FALSE, index = NULL, test.uniformity = TRUE, null.simu = NULL, p.value.method = "p", num.permutations = NULL){
+BEAST <- function(X, dep, subsample.percent = 1/2, B = 100, unif.margin = FALSE, lambda = NULL, index = NULL, method = "p", num = NULL){
+  if(is.vector(X)){
+    X = as.matrix(X, ncol = 1)
+  }
   n <- nrow(X)
   p <- ncol(X)
   if (p == 1){
-    for (i in 1:n){
-      if (X[n][1] > 1 || X[n][1] < 0) stop("Data out of range [0, 1]")
-    }
+    if(sum(X > 1 | X < 0) > 0) stop("Data out of range [0, 1]")
   }
 
   if(is.null(lambda)){
-    lambda <- sqrt(2 * log(2^(p * d)) / n) / 2
+    lambda <- sqrt(log(2^(p * dep)) / (8*n))
   }
 
-  if (test.uniformity){
-    test.independence <- FALSE
-  }else if ((!test.independence)){
-    stop("Select uniformity or independence to test.")
-  }else if (is.null(index)){
-    stop("Need a list of index!")
-  }
-
-  if(is.null(null.simu)){
-    # null.simu <- c(0);
-    if(!p.value.method %in% c("p", "s")){
-      p.value.method <- "NA"
-      num.permutations <- 1
-    }else if(p.value.method == "p"){
-      num.permutations <- 100
-    }else if(p.value.method == "s"){
-      num.permutations <- 1000
-    }
-
-    m <- n * subsample.percent
-
-    L = BeastCpp(X, d, m, B, unif.margin, lambda, test.uniformity, test.independence, index, p.value.method, num.permutations)
-    L$Interaction = matrix(as.numeric(unlist(strsplit(L$Interaction, ""))), nrow = p, byrow = TRUE)
-    return(L)
+  # independent index
+  # mutual.idx = list()
+  # for(i in 1:p){
+  #   mutual.idx[length(mutual.idx) + 1] = c(i)
+  # }
+  if(is.null(index)){
+    # c(1:p):uniformity
+    index = list(c(1:p))
+    unif.margin = TRUE
+    if(sum(X > 1 | X < 0) > 0) stop("Data out of range [0, 1]")
+    test.uniformity = TRUE
+    test.independence = FALSE
   }else{
-    p.value.method <- "NA"
-    num.permutations <- 1
-
-    m <- n * subsample.percent
-
-    L = BeastCpp(X, d, m, B, unif.margin, lambda, test.uniformity, test.independence, index, p.value.method, num.permutations)
-    L$"p.value" = sum(null.simu >= L$"BEAST.Statistic")/length(null.simu)
-    L$Interaction = matrix(as.numeric(unlist(strsplit(L$Interaction, ""))), nrow = p, byrow = TRUE)
-    return(L)
+    test.uniformity = FALSE
+    test.independence = TRUE
+    # test index cover all 1:p for only 1 time
+    v = c()
+    for (i in 1:length(index)) {
+      v = c(v, index[[i]])
+    }
+    if(length(v) != p){
+      stop("index out of range of 1:p")
+    }else if(!all.equal(sort(v), c(1:p))){
+      stop("index should be a list of disjoint subsets of 1:p")
+    }
   }
 
 
-}
-
-BEAST.null.simu <- function(n, p, d, subsample.percent = 1/2, B = 100, lambda = NULL, test.independence = FALSE, index = NULL, test.uniformity = TRUE, p.value.method = "p", num.permutations = NULL){
-  if(is.null(lambda)){
-    lambda <- sqrt(2 * log(2^(p * d)) / n) / 2
-  }
-
-  if (test.uniformity){
-    test.independence <- FALSE
-  }else if ((!test.independence)){
-    stop("Select uniformity or independence to test.")
-  }else if (is.null(index)){
-    stop("Need a list of index!")
-  }
-
-  if(!p.value.method %in% c("p", "s")){
-    stop("Select a method from permutation or simulation to generate a null distribution.")
-  }
-
-  if(p.value.method == "p"){
-    num.permutations = 100
-  }else if(p.value.method == "s"){
-    num.permutations = 1000
+  if(!method %in% c("p", "s")){
+    method <- "NA"
+    num <- 1
+  }else if(method == "p"){
+    num <- 100
+  }else if(method == "s"){
+    num <- 1000
   }
 
   m <- n * subsample.percent
 
-  nullCpp(n, p, d, m, B, lambda, test.uniformity, test.independence, index, p.value.method, num.permutations)
+  L = BeastCpp(X, dep, m, B, unif.margin, lambda, test.uniformity, test.independence, index, method, num)
+  L$Interaction = matrix(as.numeric(unlist(strsplit(L$Interaction, ""))), nrow = p, byrow = TRUE)
+  return(L)
+
+
+}
+
+BEAST.null.simu <- function(n, p, dep, subsample.percent = 1/2, B = 100, lambda = NULL, index = NULL, method = "p", num = NULL){
+  if(is.null(lambda)){
+    lambda <- sqrt(2 * log(2^(p * dep)) / n) / 2
+  }
+
+  # independent index
+  # mutual.idx = list()
+  # for(i in 1:p){
+  #   mutual.idx[length(mutual.idx) + 1] = c(i)
+  # }
+  if(is.null(index)){
+    # c(1:p):uniformity
+    index = list(c(1:p))
+    test.uniformity = TRUE
+    test.independence = FALSE
+  }else{
+    test.uniformity = FALSE
+    test.independence = TRUE
+    # test index cover all 1:p for only 1 time
+    v = c()
+    for (i in 1:length(index)) {
+      v = c(v, index[[i]])
+    }
+    if(length(v) != p){
+      stop("index out of range of 1:p")
+    }else if(!all.equal(sort(v), c(1:p))){
+      stop("index should be a list of disjoint subsets of 1:p")
+    }
+  }
+
+  if(!method %in% c("p", "s")){
+    stop("Select a method from permutation or simulation to generate a null distribution.")
+  }
+
+  if(is.null(num)){
+    if(method == "p"){
+      num = 100
+    }else if(method == "s"){
+      num = 1000
+    }
+  }
+
+
+  m <- n * subsample.percent
+
+  nullCpp(n, p, dep, m, B, lambda, test.uniformity, test.independence, index, method, num)
 }
