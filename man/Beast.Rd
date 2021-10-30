@@ -9,7 +9,7 @@ BEAST(
   B = 100,
   unif.margin = FALSE,
   lambda = NULL,
-  index = NULL,
+  index = list(c(1:ncol(X))),
   method = "p",
   num = NULL
 )

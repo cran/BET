@@ -5,6 +5,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // symmCpp
 List symmCpp(NumericMatrix& X_R, int d, bool unif);
 RcppExport SEXP _BET_symmCpp(SEXP X_RSEXP, SEXP dSEXP, SEXP unifSEXP) {

@@ -15,7 +15,7 @@ BEAST.null.simu(
   subsample.percent = 1/2,
   B = 100,
   lambda = NULL,
-  index = NULL,
+  index = list(c(1:p)),
   method = "p",
   num = NULL
 )

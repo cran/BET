@@ -8,7 +8,7 @@ MaxBETs(
   unif.margin = FALSE,
   asymptotic = TRUE,
   plot = FALSE,
-  index = NULL
+  index = list(c(1:ncol(X)))
 )
 }
 \arguments{

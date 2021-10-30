@@ -80,7 +80,7 @@ bet.plot <- function(X, dep, unif.margin = FALSE, cex=0.5, ...){
   plot.bid(dep, be.ind1, be.ind2)
 }
 
-MaxBET <- function(X, dep, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE, index = NULL){
+MaxBET <- function(X, dep, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE, index = list(c(1:ncol(X)))){
   if(is.vector(X)){
     X = as.matrix(X, ncol = 1)
   }
@@ -97,9 +97,8 @@ MaxBET <- function(X, dep, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE,
   # for(i in 1:p){
   #   mutual.idx[length(mutual.idx) + 1] = c(i)
   # }
-  if(is.null(index)){
+  if(identical(index, list(c(1:p)))){
     # c(1:p):uniformity
-    index = list(c(1:p))
     unif.margin = TRUE
     if(sum(X > 1 | X < 0) > 0) stop("Data out of range [0, 1]")
     test.uniformity = TRUE
@@ -148,7 +147,7 @@ symm <- function(X, dep, unif.margin = FALSE, print.sample.size = TRUE){
   return(res)
 }
 
-MaxBETs <- function(X, d.max=4, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE, index = NULL){
+MaxBETs <- function(X, d.max=4, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE, index = list(c(1:ncol(X)))){
   if(is.vector(X)){
     X = as.matrix(X, ncol = 1)
   }
@@ -160,9 +159,9 @@ MaxBETs <- function(X, d.max=4, unif.margin = FALSE, asymptotic = TRUE, plot = F
   # for(i in 1:p){
   #   mutual.idx[length(mutual.idx) + 1] = c(i)
   # }
-  if(is.null(index)){
+
+  if(identical(index, list(c(1:p)))){
     # c(1:p):uniformity
-    index = list(c(1:p))
     unif.margin = TRUE
     if(sum(X > 1 | X < 0) > 0) stop("Data out of range [0, 1]")
     test.uniformity = TRUE
@@ -227,7 +226,7 @@ MaxBETs <- function(X, d.max=4, unif.margin = FALSE, asymptotic = TRUE, plot = F
   }
 }
 
-BEAST <- function(X, dep, subsample.percent = 1/2, B = 100, unif.margin = FALSE, lambda = NULL, index = NULL, method = "p", num = NULL){
+BEAST <- function(X, dep, subsample.percent = 1/2, B = 100, unif.margin = FALSE, lambda = NULL, index = list(c(1:ncol(X))), method = "p", num = NULL){
   if(is.vector(X)){
     X = as.matrix(X, ncol = 1)
   }
@@ -246,9 +245,9 @@ BEAST <- function(X, dep, subsample.percent = 1/2, B = 100, unif.margin = FALSE,
   # for(i in 1:p){
   #   mutual.idx[length(mutual.idx) + 1] = c(i)
   # }
-  if(is.null(index)){
+
+  if(identical(index, list(c(1:p)))){
     # c(1:p):uniformity
-    index = list(c(1:p))
     unif.margin = TRUE
     if(sum(X > 1 | X < 0) > 0) stop("Data out of range [0, 1]")
     test.uniformity = TRUE
@@ -268,15 +267,17 @@ BEAST <- function(X, dep, subsample.percent = 1/2, B = 100, unif.margin = FALSE,
     }
   }
 
-
-  if(!method %in% c("p", "s")){
-    method <- "NA"
-    num <- 1
-  }else if(method == "p"){
-    num <- 100
-  }else if(method == "s"){
-    num <- 1000
+  if(is.null(num)){
+    if(!method %in% c("p", "s")){
+      method <- "NA"
+      num <- 1
+    }else if(method == "p"){
+      num <- 100
+    }else if(method == "s"){
+      num <- 1000
+    }
   }
+
 
   m <- n * subsample.percent
 
@@ -287,9 +288,9 @@ BEAST <- function(X, dep, subsample.percent = 1/2, B = 100, unif.margin = FALSE,
 
 }
 
-BEAST.null.simu <- function(n, p, dep, subsample.percent = 1/2, B = 100, lambda = NULL, index = NULL, method = "p", num = NULL){
+BEAST.null.simu <- function(n, p, dep, subsample.percent = 1/2, B = 100, lambda = NULL, index = list(c(1:p)), method = "p", num = NULL){
   if(is.null(lambda)){
-    lambda <- sqrt(2 * log(2^(p * dep)) / n) / 2
+    lambda <- sqrt(log(2^(p * dep)) / (8*n))
   }
 
   # independent index
@@ -297,9 +298,9 @@ BEAST.null.simu <- function(n, p, dep, subsample.percent = 1/2, B = 100, lambda 
   # for(i in 1:p){
   #   mutual.idx[length(mutual.idx) + 1] = c(i)
   # }
-  if(is.null(index)){
+
+  if(identical(index, list(c(1:p)))){
     # c(1:p):uniformity
-    index = list(c(1:p))
     test.uniformity = TRUE
     test.independence = FALSE
   }else{
@@ -333,4 +334,5 @@ BEAST.null.simu <- function(n, p, dep, subsample.percent = 1/2, B = 100, lambda 
   m <- n * subsample.percent
 
   nullCpp(n, p, dep, m, B, lambda, test.uniformity, test.independence, index, method, num)
+
 }

@@ -995,6 +995,7 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
           }
         }
         indp = imp(indp_R);
+
         BETfunction bet0(indp, d, unif, 1, 1, 0, idx);
         bet0.Beast(m, B, lambda, test_uniformity, test_independence, idx);
         nullD[sample] = bet0.getBeastStat();
@@ -1059,7 +1060,7 @@ NumericVector nullCpp(size_t n, size_t p, int d, size_t m, size_t B, double lamb
             newdata[i][col] = indp[t[i]][col];
           }
         }
-        BETfunction bet0(newdata, d, 0, 1, 1, 0, idx);
+        BETfunction bet0(newdata, d, 1, 1, 1, 0, idx);
         bet0.Beast(m, B, lambda, test_uniformity, test_independence, idx);
         nullD[sample] = bet0.getBeastStat();
       }else{
@@ -1092,11 +1093,24 @@ NumericVector nullCpp(size_t n, size_t p, int d, size_t m, size_t B, double lamb
       //     indp[i][j] = dis(gen);
       //   }
       // }
-      for(size_t j = 0; j < p; j++){
-        indp_R(_, j) = runif(n);
+      if(p == 1){
+        // p=1: uniform 0, 1
+        indp_R(_, 0) = runif(n);
+      }else{
+        for(size_t j = 0; j < p; j++){
+          indp_R(_, j) = runif(n);
+        }
       }
+
+      bool unif;
+      if(test_uniformity){
+        unif = 1;
+      }else{
+        unif = 0;
+      }
+
       indp = imp(indp_R);
-      BETfunction bet0(indp, d, 0, 1, 1, 0, idx);
+      BETfunction bet0(indp, d, unif, 1, 1, 0, idx);
       bet0.Beast(m, B, lambda, test_uniformity, test_independence, idx);
       nullD[sample] = bet0.getBeastStat();
     }
