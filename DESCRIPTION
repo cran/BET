@@ -1,7 +1,7 @@
 Package: BET
 Type: Package
 Title: Binary Expansion Testing
-Version: 0.4.1
+Version: 0.4.2
 Authors@R: c(person("Wan", "Zhang", role = c("aut", "cre"),
                      email = "wanz63@live.unc.edu"),
               person("Zhigen", "Zhao", role = "aut", email = "zhaozhg@temple.edu"),
@@ -18,11 +18,11 @@ Imports: Rcpp (>= 0.12.3)
 LinkingTo: Rcpp
 RoxygenNote: 7.1.1
 NeedsCompilation: yes
-Packaged: 2021-10-30 06:54:32 UTC; zhangwan
+Packaged: 2022-01-24 07:33:16 UTC; wanzh
 Author: Wan Zhang [aut, cre],
   Zhigen Zhao [aut],
   Michael Baiocchi [aut],
   Kai Zhang [aut]
 Maintainer: Wan Zhang <wanz63@live.unc.edu>
 Repository: CRAN
-Date/Publication: 2021-10-30 09:40:02 UTC
+Date/Publication: 2022-01-24 11:02:44 UTC

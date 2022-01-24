@@ -28,7 +28,7 @@ BEAST(
 \item{lambda}{tuning parameter for soft-thresholding, default to be \eqn{sqrt(log(2^(p * dep)) / (8*n))}.}
 
 \item{index}{
-  a list of indices. If provided, test the independence among two or more groups of variables. For example, \code{index = list(c(1,2), c(3)))} refers to test the independence between \eqn{(X_1, X_2)} and \eqn{X_3}. Default to be \code{list(c(1:p))} to test if the data follow the uniform distribution over [0,1]^p, where \code{p = ncol(X)}.
+  a list of indices. If provided, test the independence among two or more groups of variables. For example, \code{index = list(c(1,2), c(3)))} refers to test the independence between \eqn{(X_1, X_2)} and \eqn{X_3}. Default to be \code{list(c(1:p))} to test if the data follow the multivariate uniform distribution over [0,1]^p, where \code{p = ncol(X)}.
 }
 \item{method}{
   If \code{"p"}, then compute null distribution with permutations. If \code{"s"}, then compute null distribution with simulations. If \code{"stat"}, only return interaction and BEAST Statistic.
@@ -58,9 +58,13 @@ y = sin(4*pi*(x1 + x2)) + 0.8*rnorm(128)
 ##test independence between (x1, x2) and y
 BEAST(cbind(x1, x2, y), 3, index = list(c(1,2), c(3)))
 ##test mutual independence among x1, x2 and y
-BEAST(cbind(x1, x2, y), 3, index = list(c(1), c(2), c(3)))
+BEAST(cbind(x1, x2, y), 3, index = list(1, 2, 3))
 
-##test uniformity
+##test bivariate uniformity
+x1 = rbeta(128, 2, 4)
+x2 = rbeta(128, 2, 4)
+BEAST(cbind(x1, x2), 3)
+##test multivariate uniformity
 x1 = rbeta(128, 2, 4)
 x2 = rbeta(128, 2, 4)
 x3 = rbeta(128, 2, 4)

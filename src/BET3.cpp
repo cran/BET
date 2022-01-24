@@ -379,7 +379,7 @@ vector<double> BETfunction::subsample(size_t m, size_t B)
   size_t total = (int)round(pow(2, p*d));
   vector<double> res(total);
 
-  // bool debug = 1;
+  // bool debug = 0;
 
   // subsample B times
   for(size_t b = 0; b < B; b++){

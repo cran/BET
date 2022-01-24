@@ -71,8 +71,14 @@ bet.plot <- function(X, dep, unif.margin = FALSE, cex=0.5, ...){
   i2 <- as.character(bet.res$Interaction$X2)
   be.ind1 <- unlist(strsplit(i1, " "))[1]
   be.ind2 <- unlist(strsplit(i2, " "))[1]
-  x <- uni(X[,1])
-  y <- uni(X[,2])
+  if(unif.margin){
+    x <- X[,1]
+    y <- X[,2]
+  }else{
+    x <- uni(X[,1])
+    y <- uni(X[,2])
+  }
+
 
   # par(mgp = c(1.8, 0.5, 0),mar=c(3,3,3,1))
   plot(c(0,1), c(0,1), xlab=expression(U[x]),ylab=expression(U[y]),type = "n")
