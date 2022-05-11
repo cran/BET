@@ -67,10 +67,10 @@ bet <- function(X, d, unif.margin = FALSE, cex=0.5, ...) UseMethod("bet")
 bet.plot <- function(X, dep, unif.margin = FALSE, cex=0.5, ...){
   if(ncol(X) != 2) stop("X does not have two columns.")
   bet.res <- BETCpp(X, dep, unif.margin, asymptotic = T, test_uniformity = T, test_independence = F, independence_index = list())
-  i1 <- as.character(bet.res$Interaction$X1)
-  i2 <- as.character(bet.res$Interaction$X2)
-  be.ind1 <- unlist(strsplit(i1, " "))[1]
-  be.ind2 <- unlist(strsplit(i2, " "))[1]
+  be.ind1 <- unlist(strsplit(bet.res$Interaction, "-"))[1]
+  be.ind2 <- unlist(strsplit(bet.res$Interaction, "-"))[2]
+  # be.ind1 <- unlist(strsplit(i1, " "))[1]
+  # be.ind2 <- unlist(strsplit(i2, " "))[1]
   if(unif.margin){
     x <- X[,1]
     y <- X[,2]
@@ -153,6 +153,41 @@ symm <- function(X, dep, unif.margin = FALSE, print.sample.size = TRUE){
   return(res)
 }
 
+get.signs <- function(X, dep, unif.margin = FALSE){
+  if(is.vector(X)){
+    X = as.matrix(X, ncol = 1)
+  }
+  n <- nrow(X)
+  p <- ncol(X)
+  if (p == 1){
+    for (i in 1:n){
+      if (X[n][1] > 1 || X[n][1] < 0) stop("Data out of range [0, 1]")
+    }
+  }
+
+  res = colorCpp(X, dep, unif.margin)
+  res = res[,order(colnames(res))]
+
+  return(res)
+}
+
+cell.counts <- function(X, dep, unif.margin = FALSE){
+  if(is.vector(X)){
+    X = as.matrix(X, ncol = 1)
+  }
+  n <- nrow(X)
+  p <- ncol(X)
+  if (p == 1){
+    for (i in 1:n){
+      if (X[n][1] > 1 || X[n][1] < 0) stop("Data out of range [0, 1]")
+    }
+  }
+
+  res = cellCpp(X, dep, unif.margin)
+
+  return(res)
+}
+
 MaxBETs <- function(X, d.max=4, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE, index = list(c(1:ncol(X)))){
   if(is.vector(X)){
     X = as.matrix(X, ncol = 1)
@@ -228,7 +263,7 @@ MaxBETs <- function(X, d.max=4, unif.margin = FALSE, asymptotic = TRUE, plot = F
     if (plot && p != 2) warning('plot not available: X does not have two columns.')
     bet.s.extreme.asymmetry <- bet.extreme.asymmetry[which(bet.adj.pvalues==min(bet.adj.pvalues))]
     bet.s.zstat <- abs(bet.s.extreme.asymmetry)/sqrt(n)
-    return(list(bet.s.pvalue.bonf=bet.s.pvalue,bet.s.extreme.asymmetry=bet.s.extreme.asymmetry, bet.s.index=bet.s.interaction, bet.s.zstatistic=bet.s.zstat))
+    return(list(bet.s.pvalue.bonf=bet.s.pvalue, bet.s.extreme.asymmetry=bet.s.extreme.asymmetry, bet.s.index=bet.s.interaction, bet.s.zstatistic=bet.s.zstat))
   }
 }
 
@@ -288,7 +323,7 @@ BEAST <- function(X, dep, subsample.percent = 1/2, B = 100, unif.margin = FALSE,
   m <- n * subsample.percent
 
   L = BeastCpp(X, dep, m, B, unif.margin, lambda, test.uniformity, test.independence, index, method, num)
-  L$Interaction = matrix(as.numeric(unlist(strsplit(L$Interaction, ""))), nrow = p, byrow = TRUE)
+  L$Interaction = matrix(as.numeric(unlist(strsplit((unlist(strsplit(L$Interaction, "-"))), ""))), nrow = p, byrow = TRUE)
   return(L)
 
 

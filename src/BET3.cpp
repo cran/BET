@@ -234,10 +234,52 @@ vector<vector<vector<int>>> BETfunction::CBIDs(map<vector<int>, int>& count)
   return res;
 }
 
-vector<vector<size_t>> BETfunction::allComb()
+vector<vector<int>> BETfunction::allColor(vector<vector<int>>& Cij)
+{
+  size_t numCount = Cij.size(), numBIDs = (int)round(pow(2, d)), total = (int)round(pow(2, d*p));
+  vector<vector<int>> res(total, vector<int>(numCount));
+  // store all npoints * BIDs in to a matrix: p * #BIDs * n
+  vector<vector<vector<int>>> store(p, vector<vector<int>>(numBIDs, vector<int>(numCount)));
+
+  for (int i = 0; i < (int)p; i++){
+    vector<vector<int>> temp(numBIDs, vector<int>(numCount, 1));
+    // go over all BIDs:
+    for (size_t j = 0; j < numCount; j++){
+      // go over all p dimensions:
+      for (size_t k = 0; k < numBIDs - 1; k++){
+        temp[k+1][j] = locate(Cij[j][i], bid[k]);
+      }
+    }
+    store[i] = temp;
+  }
+
+#ifdef _OPENMP
+  omp_set_num_threads(numThread);
+#pragma omp parallel for
+#endif
+
+  for (size_t th = 1; th < numThread + 1; th++){
+    //		double wtime = omp_get_wtime();
+    for (size_t i = thread[th - 1]; i < thread[th]; i++){
+      int loc0 = 1;
+      for (size_t j = 0; j < numCount; j++){
+        for (size_t k = 0; k < p; k++){
+          loc0 = (~(loc0 ^ store[k][allidx[i][k]][j])) & 1;
+        }
+        //store color of point j for interaction i
+        res[i][j] = 2*loc0 - 1;
+        loc0 = 1;
+      }
+    }
+  }
+
+  return res;
+}
+
+vector<vector<size_t>> BETfunction::allComb(size_t p, int dep)
 {
   // # of BIDs
-  size_t b = (int)round(pow(2, d));
+  size_t b = (int)round(pow(2, dep));
 
   // # of combinations = 2^d^p
   size_t rows = (int)round(pow(b, p));
@@ -316,12 +358,17 @@ vector<int> BETfunction::symmstats(vector<int>& countValues, vector<vector<vecto
       for (size_t v = 0; v < p; v++){
         // store interaction
         out_symminter[v][i] = inter[allidx[i][v]];
-        bi += inter[allidx[i][v]];
+        // add a - for divide
+        if(v < p-1){
+          bi += (inter[allidx[i][v]] + "-");
+        }else{
+          bi += inter[allidx[i][v]];
+        }
         // iidx[v] = allidx[i][v];
       }
       binary_inter[i] = bi;
       // inter_idx[i] = iidx;
-      if ( ( (count(allidx[i].begin(), allidx[i].end(), 0) <= (int)(p - 2)) && (testUnif ||isIndex(allidx[i]) ) ) || (p == 1 && i > 0) ){
+      if ( (testUnif && i > 0) || ( (count(allidx[i].begin(), allidx[i].end(), 0) <= (int)(p - 2)) && isIndex(allidx[i]) ) || (p == 1 && i > 0) ){
         int loc0 = 1, sum = 0;
         for (size_t j = 0; j < numCount; j++){
           for (size_t k = 0; k < p; k++){
@@ -349,6 +396,342 @@ vector<int> BETfunction::symmstats(vector<int>& countValues, vector<vector<vecto
 
   return symmstats;
 }
+
+
+// ----------------add new version for symmstats: iterBET----------------------------------
+map<vector<int>, int> BETfunction::allPosition(int dep){
+  //X:n by p (p&d is already defined in class privately, delete!)
+  //find all 2^pd grid, a map only with key for this function, used for ecdf_loc and getPattern
+
+  map<vector<int>, int> count;
+
+  // 2^d: # grid on each edge
+  size_t b = (int)round(pow(2, dep));
+
+  vector<size_t> indices(p);
+  vector<int> choose(p);
+
+  // p columns, each column from 0 to 2^d-1
+  vector<vector<int>> comb(p, vector<int>(b));
+  for (size_t i = 0; i < p; i++){
+    for (int j = 0; j < b; j++){
+      comb[i][j] = j;
+    }
+  }
+
+  size_t i = 0;
+  while (i < p){
+    for (size_t j = 0; j < p; j++){
+      choose[j] = comb[j][indices[j]];
+    }
+
+    // store into targeted map
+    count[choose] = 0;
+
+    i = 0;
+    while (i < comb.size() && ++indices[i] == comb[i].size())
+      indices[i++] = 0;
+  }
+
+  return count;
+}
+
+vector<vector<int>> BETfunction::getPattern(){
+  // a matrix 2^p by 2^p: signs for basic config
+  size_t col = (size_t)(int)round(pow(2, (int)p));
+  // matrix 2^p by 2^p: +- for each grid
+  vector<vector<int>> pat(col, vector<int>(col));
+  // get indicators of BID 00 or 01
+  vector<vector<size_t>> idx = allComb(p, 1);
+  // fit all 2^p (d=1) grid with 2^p
+  // all grid:
+  map<vector<int>, int> posi = allPosition(1);
+
+  // 2 BIDs for d=1:
+  vector<int> bid1 = {0, 1};
+  for(size_t i=0; i<idx.size(); i++){
+    size_t nposi = 0;
+    for (map<vector<int>,int>::iterator it=posi.begin(); it!=posi.end(); ++it){
+      // each grid:
+      int sign = 1;
+      for(size_t j=0; j<p; j++){
+        //				sign = ~(sign ^ locate(it->first[j]+1, bid1[idx[i][j]], 1)) & 1;
+        if((it->first[j] == 1) && (idx[i][j] == 1)){
+          // sign of j-dim with i-bid : 1
+          sign = (~(sign ^ 1)) & 1;
+        }else if((it->first[j] == 0) && (idx[i][j] == 1)){
+          // 0
+          sign = (~(sign ^ 0)) & 1;
+        }
+        			// cout << idx[i][j] << " ";
+      }
+      		// cout << ": " << sign << endl;
+
+      pat[i][nposi] = 2*sign-1;
+      nposi++;
+    }
+
+  }
+
+  return pat;
+}
+
+string BETfunction::convert(size_t idx){
+  string res(p*d + p-1, '0');
+
+  long a = (long)idx;
+  int base = (int)round(pow(2, (int)p));
+
+  int b[1000] = {0};
+  int num = 0;
+  int i = 0;
+  while (a > 0)
+  {
+    num = a % base;
+    a /= base;
+    b[i] = num;
+    int num0 = 0;
+    int j = p*d +p - 1 - i - 1;
+    while (num > 0)
+    {
+      num0 = num % 2;
+      num /= 2;
+      res.replace(j, 1, to_string(num0));
+
+      j = j - d - 1;
+    }
+
+    ++i;
+  }
+  for(size_t i = d; i < p*d + p - 1; i = i+d+1){
+    res.replace(i, 1, "-");
+  }
+
+
+  return res;
+}
+
+vector<string> BETfunction::idxFilter(){
+  size_t total = (size_t)round(pow(2, (int)p*d));
+  vector<string> res(total);
+  for(size_t idx = 0; idx < total; idx++){
+
+    long a = (long)idx;
+    int base = (int)round(pow(2, (int)p));
+
+    vector<int> b(d);
+    int num = 0;
+    int i = 0;
+    while (a > 0)
+    {
+      num = a % base;
+      a /= base;
+      b[i] = num;
+      ++i;
+    }
+
+    bool isidx = 1;
+    //see whether in indep index
+    if(!testUnif){
+      for(size_t i = 0; i < indepIndex.size(); i++){
+        bool nonZero = 0;
+        // whether indep[i][j]-1 -th digit i=0
+        for(size_t j = 0; j < indepIndex[i].size(); j++){
+          for(auto& num: b){
+            nonZero = nonZero || (num >> (p - indepIndex[i][j])&1);
+          }
+
+        }
+        isidx = isidx && nonZero;
+
+      }
+    }
+
+
+    if(isidx){
+      string inter(p*d + p-1, '0');
+      for(size_t i = 0; i < d; ++i){
+        int num0 = 0;
+        int j = p*d +p - 1 - i - 1;
+        while (b[i] > 0)
+        {
+          num0 = b[i] % 2;
+          b[i] /= 2;
+          inter.replace(j, 1, to_string(num0));
+
+          j = j - d - 1;
+        }
+      }
+
+
+      for(size_t i = d; i < p*d + p - 1; i = i+d+1){
+        inter.replace(i, 1, "-");
+      }
+      res[idx] = inter;
+
+    }
+
+
+  }
+
+  return res;
+}
+
+
+vector<int> BETfunction::iterBET(map<vector<int>, int>& posi){
+  //posi: original grid
+
+  size_t col = (size_t)(int)round(pow(2, (int)p));
+
+
+  // layer0: first layer with d-1
+  vector<vector<size_t>> layer0 = allComb(p, d-1);
+  // for all combinations (0,0) -> (2^d-1, 2^d-1) (p-dim): toner of +0 or +1
+  vector<vector<size_t>> toner0 = allComb(p, 1);
+
+  // store first operation results: key all comb of p*2^d-1; value 2^p pattern results
+  //	map<vector<int>, vector<int>> layer1;
+  // store separately: map for (pair) -> index; vector of coefficients
+  map<vector<size_t>, size_t> layer1;
+  size_t coeff_r = layer0.size();
+  vector<vector<int>> aCoeff(coeff_r, vector<int>(col));
+
+#ifdef _OPENMP
+  #pragma omp parallel for if(coeff_r > 1)
+#endif
+  for(size_t idx = 0; idx < coeff_r; idx++){
+    // k: 2^p pattern
+
+    for(size_t k = 0; k < col; k++){
+      //get one vector xij: 2^p (times with pattern matrix)
+      int sum = 0;
+      // i: each row 2^p entry
+      for(size_t i = 0; i < col; i++){
+        vector<int> grid(p);
+        for(size_t j = 0; j < p; j++){
+          grid[j] = 2*layer0[idx][j] + toner0[i][j] + 1;
+        }
+        // get large grid with 2^p grid
+        if(posi.count(grid) > 0){
+          sum += pat[k][i] * posi[grid];
+        }
+      }
+      aCoeff[idx][k] = sum;
+    }
+#ifdef _OPENMP
+  #pragma omp critical
+#endif
+    {layer1[layer0[idx]] = idx;}
+  }
+
+
+  int d0 = d-1;
+  // store next operation results: key all comb of p*2^d0-1; value 2^p pattern results
+  while (d0 > 0){
+    map<vector<size_t>, size_t> layer2;
+    d0 = d0 - 1;
+
+    // layer0: k-th layer with d-k, same toner
+    layer0 = allComb(p, d0);
+    size_t coeff_r = layer0.size();
+    // store coefficients
+    size_t coeff_c2 = (size_t)(int)round(pow(2, (int)p*(d - d0)));
+    vector<vector<int>> bCoeff(coeff_r, vector<int>(coeff_c2) );
+
+    // 2^(d-d0) coefficients for now
+    size_t coeff_c = (size_t)(int)round(pow(2, (int)p*(d - d0 - 1)));
+
+#ifdef _OPENMP
+#pragma omp parallel for if(coeff_r > 1)
+#endif
+    for(size_t idx = 0; idx < coeff_r; idx++){
+#ifdef _OPENMP
+      #pragma omp parallel for if(coeff_r == 1)
+#endif
+      for(size_t k = 0; k < col; k++){
+        //get one vector xij: 2^p (times with pattern matrix)
+        int sum;
+        for(size_t ci = 0; ci < coeff_c; ci++){
+          sum = 0;
+          size_t f = k*coeff_c + ci;
+          if(d0 == 0){
+            if(binary_inter[f] != ""){
+              for(size_t i = 0; i < col; i++){
+
+                vector<size_t> grid(p);
+                for(size_t j = 0; j < p; j++){
+                  grid[j] = 2*layer0[idx][j] + toner0[i][j];
+
+                  //							cout << " idx: " << grid[j] << " ";
+                }
+
+                // go over all coeff
+                // get large grid with 2^p grid
+                if(layer1.count(grid) > 0){
+                  sum += pat[k][i] * aCoeff[layer1[grid]][ci];
+                }
+              }
+
+      #ifdef _OPENMP
+      #pragma omp critical
+      #endif
+          {bCoeff[idx][f] = sum;}
+            }
+          }else{
+            for(size_t i = 0; i < col; i++){
+
+              vector<size_t> grid(p);
+              for(size_t j = 0; j < p; j++){
+                grid[j] = 2*layer0[idx][j] + toner0[i][j];
+              }
+
+              // go over all coeff
+              // get large grid with 2^p grid
+              if(layer1.count(grid) > 0){
+                sum += pat[k][i] * aCoeff[layer1[grid]][ci];
+              }
+            }
+      #ifdef _OPENMP
+      #pragma omp critical
+      #endif
+      {bCoeff[idx][f] = sum;}
+          }
+
+
+        }
+
+      }
+#ifdef _OPENMP
+    #pragma omp critical
+#endif
+      {layer2[layer0[idx]] = idx;}
+    }
+
+    //refresh layer1 & 2; refresh a/bCoeff
+    layer1 = layer2;
+    aCoeff = bCoeff;
+
+  }
+
+  // find the extreme stat
+  aCoeff[0][0] = 0;
+  vector<int>::iterator findMax = max_element(aCoeff[0].begin(), aCoeff[0].end(), abs_compare);
+  size_t max_idx = distance(aCoeff[0].begin(), findMax);
+
+  // max interaction index
+  // vector<int> max_interaction = inter_idx[max_idx];
+  string max_interaction = convert(max_idx);
+
+  // count most frequent max interaction
+  countInteraction[max_interaction]++;
+
+  return aCoeff[0];
+}
+
+
+
+
+// ----------------end of iterBET----------------------------------------
 
 vector<size_t> BETfunction::unreplaceShuffle(size_t size, size_t max_size)
 {
@@ -382,14 +765,15 @@ vector<double> BETfunction::subsample(size_t m, size_t B)
   // bool debug = 0;
 
   // subsample B times
+  // cout << ifIter << endl;
   for(size_t b = 0; b < B; b++){
     vector<size_t> idx = unreplaceShuffle(m, n);
 
     // if(debug){
-    //   for(size_t i = 0; i < m; i++){
-    //     cout << idx[i] << " ";
-    //   }
-    //   cout << " The " << b+1 << " time index " << endl;
+      // for(size_t i = 0; i < m; i++){
+      //   cout << idx[i] << " ";
+      // }
+      // cout << " The " << b+1 << " time index " << endl;
     // }
 
     //	new data
@@ -402,24 +786,54 @@ vector<double> BETfunction::subsample(size_t m, size_t B)
 
     // create a map that count for observations in the same location
     map<vector<int>, int> mapC = groupC(c);
+    size_t numCount = mapC.size();
+    vector<int> S;
+    
+    // consist symm and beast
+    if(b == 0 && ifIter && (numCount < total*2/3)){
+      // if iter for symm but not iter for now
+      ifIter = 0;
+      // regenerate symm with notiter
+      vector<int> countValues;
+      for (map<vector<int>, int>::iterator it=countGrid.begin(); it!=countGrid.end(); ++it){
+        countValues.push_back(it->second);
+      }
 
-    // number of each location
-    vector<int> countValues;
-    for (map<vector<int>, int>::iterator it=mapC.begin(); it!=mapC.end(); ++it){
-      countValues.push_back(it->second);
+      // 3-dimension matrix: Xij ~ BIDs
+      vector<vector<vector<int>>> matrix = CBIDs(countGrid);
+
+      // binary expansion on X
+      out_symmstats = symmstats(countValues, matrix, n);
+    }else if(b == 0 && !ifIter && (numCount >= total*2/3) && p*d >= 12){
+      // if notiter for symm but iter for now
+      ifIter = 1;
+      // iter for symm
+      out_symmstats = iterBET(countGrid);
+    }
+    
+    if(!ifIter){
+      // number of each location
+      vector<int> countValues;
+      for (map<vector<int>, int>::iterator it=mapC.begin(); it!=mapC.end(); ++it){
+        countValues.push_back(it->second);
+      }
+
+      // 3-dimension matrix: Xij ~ BIDs
+      vector<vector<vector<int>>> matrix = CBIDs(mapC);
+
+      // binary expansion on X_m
+      S = symmstats(countValues, matrix, m);
+
+    }else{
+      S = iterBET(mapC);
+
     }
 
-    // 3-dimension matrix: Xij ~ BIDs
-    vector<vector<vector<int>>> matrix = CBIDs(mapC);
-
-    // binary expansion on X_m
-    vector<int> S = symmstats(countValues, matrix, m);
-
     // if(debug){
-    //   for(size_t i = 0; i < S.size(); i++){
-    //     cout << S[i] << " ";
-    //   }
-    //   cout << " The " << b+1 << " time sample " << endl;
+      // for(size_t i = 0; i < S.size(); i++){
+      //   cout << S[i] << " ";
+      // }
+      // cout << " The " << b+1 << " time sample " << endl;
     // }
 
 
@@ -428,6 +842,7 @@ vector<double> BETfunction::subsample(size_t m, size_t B)
       res[i] += (double)S[i]/(double)m;
     }
   }
+  // cout << ifIter << endl;
 
   // take mean
   for(size_t i = 0; i < total; i++){
@@ -534,7 +949,7 @@ double BETfunction::getPvalue()
   return pvalue;
 }
 
-vector<string> BETfunction::getInteraction()
+string BETfunction::getInteraction()
 {
   return interaction_str;
 }
@@ -542,6 +957,35 @@ vector<string> BETfunction::getInteraction()
 vector<int> BETfunction::getSymmStats()
 {
   return out_symmstats;
+}
+
+map<string, int, std::greater<std::string>> BETfunction::getGrids(){
+  map<string, int, std::greater<std::string>> res;
+  map<vector<int>, int> posi = allPosition(d);
+  for(auto& c: cell){
+    vector<int> c1(p);
+    for(size_t i = 0; i < p; i++){
+      c1[i] = c[i] - 1;
+    }
+    posi[c1]++;
+  }
+  for (map<vector<int>, int>::iterator it=posi.begin(); it!=posi.end(); ++it){
+    string g = "";
+    for(size_t i = 0; i < it->first.size(); i++){
+      bitset<6> b(it->first[i]);
+      g += b.to_string().substr(6-d, d);
+    }
+    res[g] = it->second;
+  }
+
+  return res;
+}
+
+vector<vector<int>> BETfunction::getAllColor()
+{
+  // empirical cdf
+  vector<vector<int>> c = ecdf_loc(X);
+  return allColor(c);
 }
 
 vector<vector<string>> BETfunction::getSymmInteraction()
@@ -572,7 +1016,7 @@ string BETfunction::getBeastInteraction()
 
 void BETfunction::Beast(size_t m, size_t B, double lambda, bool test_uniformity, bool test_independence, vector<vector<size_t>>& independence_index)
 {
-  // bool debug = 1;
+  // bool debug = 0;
 
   testUnif = test_uniformity;
   testIndep = test_independence;
@@ -590,10 +1034,10 @@ void BETfunction::Beast(size_t m, size_t B, double lambda, bool test_uniformity,
   vector<double> S1 = subsample(m, B);
 
   // if(debug){
-  //   for(size_t i = 0; i < S1.size(); i++){
-  //     cout << S1[i] << " ";
-  //   }
-  //   cout << "  S1" <<endl;
+    // for(size_t i = 0; i < S1.size(); i++){
+    //   cout << S1[i] << " ";
+    // }
+    // cout << "  S1" <<endl;
   // }
 
   // soft-thresholding lambda = sqrt(2log(2^pd)/n)
@@ -602,16 +1046,36 @@ void BETfunction::Beast(size_t m, size_t B, double lambda, bool test_uniformity,
   //soft-threshold
   vector<double> T1 = softthreshold(S1, lambda);
   // if(debug){
-  //   for(size_t i = 0; i < S1.size(); i++){
-  //     cout << T1[i] << " ";
-  //   }
-  //   cout << "  T1" <<endl;
+    // for(size_t i = 0; i < S1.size(); i++){
+    //   cout << T1[i] << " ";
+    // }
+    // cout << "  T1" <<endl;
   // }
 
-  vector<double> symm_double;
-  copy(out_symmstats.begin(), out_symmstats.end(), back_inserter(symm_double));
+  vector<double> symm_double(out_symmstats.size());
+  // (out_symmstats.size())
+  // for(size_t i = 0; i < S1.size(); i++){
+  //   cout << out_symmstats[i] << " ";
+  // }
+  // cout << "  symm" <<endl;
+  
+  for(size_t i = 0; i < out_symmstats.size(); i++){
+    symm_double[i] = (double)out_symmstats[i] / (double)n;
+  }
+  // copy(out_symmstats.begin(), out_symmstatss.end(), back_inserter(symm_double));
+  // for(size_t i = 0; i < S1.size(); i++){
+  //   cout << symm_double[i] << " ";
+  // }
+  // cout << "  S" <<endl;
+
 
   vector<double> T = softthreshold(symm_double, lambda);
+  // if(debug){
+    // for(size_t i = 0; i < S1.size(); i++){
+    //   cout << T[i] << " ";
+    // }
+    // cout << "  T" <<endl;
+  // }
 
   double T_module = 0;
   for(size_t i = 0; i < T.size(); i++){
@@ -677,7 +1141,7 @@ BETfunction:: BETfunction(vector<vector<double>>& X_R, int depth, bool unif, boo
 	inter_mat = interaction_mat();
 
 	// all variables go over all bids:
-	allidx = allComb();
+	allidx = allComb(p, d);
 	size_t total = (int)round(pow(2, p*d));
 
 
@@ -693,8 +1157,11 @@ BETfunction:: BETfunction(vector<vector<double>>& X_R, int depth, bool unif, boo
 
 	// start multiprocessing
 #ifdef _OPENMP
-	if(p >= 2)
+	if(p == 2){
 	  numThread = 4;
+	}else if(p >= 3){
+	  numThread = omp_get_num_procs();
+	}
 #endif
 
 	// loops: 2^pd
@@ -715,53 +1182,102 @@ BETfunction:: BETfunction(vector<vector<double>>& X_R, int depth, bool unif, boo
 
 
 	// empirical cdf
-	vector<vector<int>> c = ecdf_loc(X);
+	cell = ecdf_loc(X);
 
 	// create a map that count for observations in the same location
-	map<vector<int>, int> mapC = groupC(c);
-	size_t numCount = mapC.size();
+	countGrid = groupC(cell);
+	size_t numCount = countGrid.size();
 
-	// number of each location
-	vector<int> countValues;
-	for (map<vector<int>, int>::iterator it=mapC.begin(); it!=mapC.end(); ++it){
-	  countValues.push_back(it->second);
-	}
 
-	// 3-dimension matrix: Xij ~ BIDs
-	vector<vector<vector<int>>> matrix = CBIDs(mapC);
 
-	// binary expansion on X
-	out_symmstats = symmstats(countValues, matrix, n);
 
-	// find the extreme stat
-	vector<int>::iterator findMax = max_element(out_symmstats.begin(), out_symmstats.end(), abs_compare);
-	size_t max_idx = distance(out_symmstats.begin(), findMax);
 
-	// maxStat
-	Stats = out_symmstats[max_idx];
-	// max interaction
-	interaction_str.resize(p);
+	// -----------------decide iterBET or old BET------------------------
 
-	// store marginal
 	int Sa = 0, Sb = 0;
-
-	for (size_t i = 0; i < p; i++){
-	  vector<string>::iterator ans = find(inter.begin(), inter.end(), out_symminter[i][max_idx]);
-	  int index = distance(inter.begin(), ans);
-	  interaction_str[i] = inter[index];
-	  if (p == 2 && i == 0){
-	    // count marginal
-	    for (size_t j = 0; j < numCount; j++){
-	      Sa += matrix[i][index][j] * countValues[j];
-	    }
-	  }
-	  if (p == 2 && i == 1){
-	    // count marginal
-	    for (size_t j = 0; j < numCount; j++){
-	      Sb += matrix[i][index][j] * countValues[j];
-	    }
-	  }
+	// numCount < total*2/3 || d==1
+	if(numCount >= total*2/3 && (p*d) >= 12){
+	  ifIter = 1;
 	}
+
+  if(!ifIter){
+    // number of each location
+    vector<int> countValues;
+    for (map<vector<int>, int>::iterator it=countGrid.begin(); it!=countGrid.end(); ++it){
+      countValues.push_back(it->second);
+    }
+
+    // 3-dimension matrix: Xij ~ BIDs
+    vector<vector<vector<int>>> matrix = CBIDs(countGrid);
+
+    // binary expansion on X
+    out_symmstats = symmstats(countValues, matrix, n);
+    // find the extreme stat
+    vector<int>::iterator findMax = max_element(out_symmstats.begin(), out_symmstats.end(), abs_compare);
+    size_t max_idx = distance(out_symmstats.begin(), findMax);
+
+    // maxStat
+    Stats = out_symmstats[max_idx];
+    // max interaction: interaction_str
+    interaction_str = binary_inter[max_idx];
+
+    // store marginal
+    for (size_t i = 0; i < p; i++){
+      vector<string>::iterator ans = find(inter.begin(), inter.end(), out_symminter[i][max_idx]);
+      int index = distance(inter.begin(), ans);
+      if (p == 2 && i == 0){
+        // count marginal
+        for (size_t j = 0; j < numCount; j++){
+          Sa += matrix[i][index][j] * countValues[j];
+        }
+      }
+      if (p == 2 && i == 1){
+        // count marginal
+        for (size_t j = 0; j < numCount; j++){
+          Sb += matrix[i][index][j] * countValues[j];
+        }
+      }
+    }
+
+  }else{
+    // get all interaction
+    binary_inter = idxFilter();
+    // pattern for every 2^p by 2^p grid
+    pat = getPattern();
+
+    out_symmstats = iterBET(countGrid);
+    
+
+
+    // find the extreme stat
+    vector<int>::iterator findMax = max_element(out_symmstats.begin(), out_symmstats.end(), abs_compare);
+    size_t max_idx = distance(out_symmstats.begin(), findMax);
+
+    // maxStat
+    Stats = out_symmstats[max_idx];
+    // max interaction
+    interaction_str = binary_inter[max_idx];
+
+    // store marginal
+    long a = (long)max_idx;
+    int base = (int)round(pow(2, (int)p));
+
+    int num = 0;
+    int i = 0;
+    while (a > 0)
+    {
+      num = a % base;
+      a /= base;
+      Sa += ((num>>1)<<1) * (int)round(pow(4, i));
+      Sb += (((num<<1)&3)>>1) * (int)round(pow(4, i));
+
+      ++i;
+    }
+
+    Sa = (out_symmstats[Sa] + (int)n)/2;
+    Sb = (out_symmstats[Sb] + (int)n)/2;
+
+  }
 
 	if (p > 2 || asympt){
 	  // asymptotic p value: normal N (0, n)
@@ -819,7 +1335,7 @@ List symmCpp(NumericMatrix& X_R, int d, bool unif)
 
   vector<vector<size_t>> idx = {{}};;
   BETfunction bet(X, d, unif, 1, 1, 0, idx);
-  size_t p = X_R.ncol();
+
   // size_t length = (int)round(pow(2, (int)p*d));
 
   DataFrame symm = DataFrame::create(
@@ -839,9 +1355,9 @@ List symmCpp(NumericMatrix& X_R, int d, bool unif)
   // }
   // symm.push_front(temp1, "X1");
 
-  for (size_t i = p; i > 0; i--){
-    symm.push_front(bet.getSymmInteraction()[i-1], "X" + to_string(i));
-  }
+  // for (size_t i = p; i > 0; i--){
+  //   symm.push_front(bet.getSymmInteraction()[i-1], "X" + to_string(i));
+  // }
 
   symm.push_front(bet.getBinary(), "BinaryIndex");
 
@@ -849,6 +1365,38 @@ List symmCpp(NumericMatrix& X_R, int d, bool unif)
 
   return DataFrame(symm);
 
+}
+
+//[[Rcpp::export]]
+DataFrame colorCpp(NumericMatrix& X_R, int d, bool unif)
+{
+  vector<vector<double>> X = imp(X_R);
+  vector<vector<size_t>> idx = {{}};
+  BETfunction bet(X, d, unif, 1, 1, 0, idx);
+  vector<vector<int>> c = bet.getAllColor();
+  DataFrame df = DataFrame(c);
+  df.names() = bet.getBinary();
+
+  return df;
+}
+
+//[[Rcpp::export]]
+DataFrame cellCpp(NumericMatrix& X_R, int d, bool unif)
+{
+  vector<vector<double>> X = imp(X_R);
+  vector<vector<size_t>> idx = {{}};
+  BETfunction bet(X, d, unif, 1, 1, 0, idx);
+  map<string, int, std::greater<std::string>> cell = bet.getGrids();
+  vector<string> p(cell.size());
+  vector<int> v(cell.size());
+  size_t i = 0;
+  for(map<string, int>::iterator it=cell.begin(); it!=cell.end(); ++it, i++){
+    p[i] = it->first;
+    v[i] = it->second;
+  }
+  DataFrame df = DataFrame::create( Named("Cell") = p , Named("Count") = v );
+
+  return df;
 }
 
 //[[Rcpp::export]]
@@ -870,13 +1418,13 @@ List BETCpp(NumericMatrix& X_R, int d, bool unif, bool asymptotic, bool test_uni
 
   DataFrame df = DataFrame::create();
 
-  size_t p = X[0].size();
-  for (size_t i = p; i > 0; i--){
-    // CharacterVector vi = {bet.getInteraction()[i-1]};
-    df.push_front(bet.getInteraction()[i-1], "X" + to_string(i));
-  }
+  // size_t p = X[0].size();
+  // for (size_t i = p; i > 0; i--){
+  //   // CharacterVector vi = {bet.getInteraction()[i-1]};
+  //   df.push_front(bet.getInteraction()[i-1], "X" + to_string(i));
+  // }
 
-  List L = List::create(Named("Interaction") = DataFrame(df), Named("Extreme.Asymmetry") = bet.getStats(), Named("p.value.bonf") = bet.getPvalue(), Named("z.statistic") = zstats);
+  List L = List::create(Named("Interaction") = bet.getInteraction(), Named("Extreme.Asymmetry") = bet.getStats(), Named("p.value.bonf") = bet.getPvalue(), Named("z.statistic") = zstats);
 
   return L;
 
@@ -899,7 +1447,7 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
   size_t n = X.size();
   size_t p = X[0].size();
 
-  BETfunction bet(X, d, unif, 1, 1, 0, idx);
+  BETfunction bet(X, d, unif, 1, test_uniformity, test_independence, idx);
 
   bet.Beast(m, B, lambda, test_uniformity, test_independence, idx);
 
@@ -953,7 +1501,7 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
               newdata[i][col] = indp[t[i]][col];
             }
           }
-          BETfunction bet0(newdata, d, unif, 1, 1, 0, idx);
+          BETfunction bet0(newdata, d, unif, 1, test_uniformity, test_independence, idx);
           bet0.Beast(m, B, lambda, test_uniformity, test_independence, idx);
           nullD[sample] = bet0.getBeastStat();
         }else{
@@ -974,7 +1522,7 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
           }
         }
         // null distribution:
-        BETfunction bet0(newdata, d, unif, 1, 1, 0, idx);
+        BETfunction bet0(newdata, d, unif, 1, test_uniformity, test_independence, idx);
         bet0.Beast(m, B, lambda, test_uniformity, test_independence, idx);
         nullD[sample] = bet0.getBeastStat();
       }
@@ -996,7 +1544,7 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
         }
         indp = imp(indp_R);
 
-        BETfunction bet0(indp, d, unif, 1, 1, 0, idx);
+        BETfunction bet0(indp, d, unif, 1, test_uniformity, test_independence, idx);
         bet0.Beast(m, B, lambda, test_uniformity, test_independence, idx);
         nullD[sample] = bet0.getBeastStat();
       }
@@ -1060,7 +1608,7 @@ NumericVector nullCpp(size_t n, size_t p, int d, size_t m, size_t B, double lamb
             newdata[i][col] = indp[t[i]][col];
           }
         }
-        BETfunction bet0(newdata, d, 1, 1, 1, 0, idx);
+        BETfunction bet0(newdata, d, 1, 1, test_uniformity, test_independence, idx);
         bet0.Beast(m, B, lambda, test_uniformity, test_independence, idx);
         nullD[sample] = bet0.getBeastStat();
       }else{
@@ -1081,7 +1629,7 @@ NumericVector nullCpp(size_t n, size_t p, int d, size_t m, size_t B, double lamb
         }
       }
       // null distribution:
-      BETfunction bet0(newdata, d, 0, 1, 1, 0, idx);
+      BETfunction bet0(newdata, d, 0, 1, test_uniformity, test_independence, idx);
       bet0.Beast(m, B, lambda, test_uniformity, test_independence, idx);
       nullD[sample] = bet0.getBeastStat();
     }
@@ -1110,7 +1658,7 @@ NumericVector nullCpp(size_t n, size_t p, int d, size_t m, size_t B, double lamb
       }
 
       indp = imp(indp_R);
-      BETfunction bet0(indp, d, unif, 1, 1, 0, idx);
+      BETfunction bet0(indp, d, unif, 1, test_uniformity, test_independence, idx);
       bet0.Beast(m, B, lambda, test_uniformity, test_independence, idx);
       nullD[sample] = bet0.getBeastStat();
     }

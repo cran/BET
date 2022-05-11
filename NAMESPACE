@@ -5,6 +5,8 @@ export(bet.plot)
 export(MaxBETs)
 export(BEAST)
 export(BEAST.null.simu)
+export(get.signs)
+export(cell.counts)
 
 importFrom(Rcpp, evalCpp)
 importFrom("grDevices", "rgb")

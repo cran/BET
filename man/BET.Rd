@@ -45,7 +45,7 @@ MaxBET(
 v <- runif(128, -pi, pi)
 X1 <- cos(v) + 2.5 * rnorm(128, 0, 1/20)
 X2 <- sin(v) + 2.5 * rnorm(128, 0, 1/20)
-MaxBET(cbind(X1, X2), 3, asymptotic = FALSE, index = list(c(1), c(2)))
+MaxBET(cbind(X1, X2), 3, asymptotic = FALSE, index = list(1,2))
 
 ##test independence between (x1, x2) and y
 x1 = runif(128)

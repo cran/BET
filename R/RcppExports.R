@@ -5,6 +5,14 @@ symmCpp <- function(X_R, d, unif) {
     .Call('_BET_symmCpp', PACKAGE = 'BET', X_R, d, unif)
 }
 
+colorCpp <- function(X_R, d, unif) {
+    .Call('_BET_colorCpp', PACKAGE = 'BET', X_R, d, unif)
+}
+
+cellCpp <- function(X_R, d, unif) {
+    .Call('_BET_cellCpp', PACKAGE = 'BET', X_R, d, unif)
+}
+
 BETCpp <- function(X_R, d, unif, asymptotic, test_uniformity, test_independence, independence_index) {
     .Call('_BET_BETCpp', PACKAGE = 'BET', X_R, d, unif, asymptotic, test_uniformity, test_independence, independence_index)
 }

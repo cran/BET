@@ -23,6 +23,32 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// colorCpp
+DataFrame colorCpp(NumericMatrix& X_R, int d, bool unif);
+RcppExport SEXP _BET_colorCpp(SEXP X_RSEXP, SEXP dSEXP, SEXP unifSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix& >::type X_R(X_RSEXP);
+    Rcpp::traits::input_parameter< int >::type d(dSEXP);
+    Rcpp::traits::input_parameter< bool >::type unif(unifSEXP);
+    rcpp_result_gen = Rcpp::wrap(colorCpp(X_R, d, unif));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cellCpp
+DataFrame cellCpp(NumericMatrix& X_R, int d, bool unif);
+RcppExport SEXP _BET_cellCpp(SEXP X_RSEXP, SEXP dSEXP, SEXP unifSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix& >::type X_R(X_RSEXP);
+    Rcpp::traits::input_parameter< int >::type d(dSEXP);
+    Rcpp::traits::input_parameter< bool >::type unif(unifSEXP);
+    rcpp_result_gen = Rcpp::wrap(cellCpp(X_R, d, unif));
+    return rcpp_result_gen;
+END_RCPP
+}
 // BETCpp
 List BETCpp(NumericMatrix& X_R, int d, bool unif, bool asymptotic, bool test_uniformity, bool test_independence, List& independence_index);
 RcppExport SEXP _BET_BETCpp(SEXP X_RSEXP, SEXP dSEXP, SEXP unifSEXP, SEXP asymptoticSEXP, SEXP test_uniformitySEXP, SEXP test_independenceSEXP, SEXP independence_indexSEXP) {
@@ -85,6 +111,8 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_BET_symmCpp", (DL_FUNC) &_BET_symmCpp, 3},
+    {"_BET_colorCpp", (DL_FUNC) &_BET_colorCpp, 3},
+    {"_BET_cellCpp", (DL_FUNC) &_BET_cellCpp, 3},
     {"_BET_BETCpp", (DL_FUNC) &_BET_BETCpp, 7},
     {"_BET_BeastCpp", (DL_FUNC) &_BET_BeastCpp, 11},
     {"_BET_nullCpp", (DL_FUNC) &_BET_nullCpp, 11},

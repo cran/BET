@@ -9,6 +9,8 @@ The \code{BET} package provides functions for nonparametric detection of nonunif
 
 \code{\link{MaxBET}}
 \code{\link{symm}}
+\code{\link{get.signs}}
+\code{\link{cell.counts}}
 \code{\link{bet.plot}}
 \code{\link{MaxBETs}}
 \code{\link{BEAST}}
