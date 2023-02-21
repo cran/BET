@@ -2,7 +2,7 @@
 \alias{bet.plot}
 \title{Plotting Binary Expansion Testing (2-dimensions)}
 \usage{
-bet.plot(X, dep, unif.margin = FALSE, cex=0.5, ...)
+bet.plot(X, dep, unif.margin = FALSE, cex=0.5, index = list(c(1:ncol(X))), ...)
 }
 \arguments{
 \item{X}{a matrix with two columns.}
@@ -14,6 +14,10 @@ bet.plot(X, dep, unif.margin = FALSE, cex=0.5, ...)
   }
 
 \item{cex}{number indicating the amount by which plotting text and symbols should be scaled relative to the default.}
+
+\item{index}{
+  a list of indices. If provided, test the independence among two or more groups of variables. For example, \code{index = list(c(1,2))} refers to test data uniformity, \code{index = list(1, 2)} refers to test independence between \eqn{X_1} and \eqn{X_2}. Default to be \code{list(c(1:p))}, where \code{p = ncol(X)}, then test data uniformity.
+}
 
 \item{...}{graphical parameters to plot}
 }
@@ -27,5 +31,5 @@ There are \eqn{2^{2dep} - 1} nontrivial binary variables in the \eqn{\sigma}-fie
 v <- runif(128, -pi, pi)
 X1 <- cos(v) + 2.5 * rnorm(128, 0, 1/20)
 X2 <- sin(v) + 2.5 * rnorm(128, 0, 1/20)
-bet.plot(cbind(X1, X2), 3)
+bet.plot(cbind(X1, X2), 3, index = list(1,2))
 }

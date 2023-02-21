@@ -737,17 +737,20 @@ vector<size_t> BETfunction::unreplaceShuffle(size_t size, size_t max_size)
 {
   assert(size <= max_size);
   vector<size_t> b(size);
-  vector<size_t> t(max_size);
+  // vector<size_t> t(max_size);
+  IntegerVector t(max_size);
+  IntegerVector x(max_size);
 
   for(size_t i = 0; i < max_size; i++){
-    t[i] = i;
+    x[i] = i;
   }
 
   // shuffle 0~max_size
   // std::random_device rd;
   // std::mt19937 gen(rd());
   // shuffle(t.begin(), t.end(), gen);
-  random_shuffle(t.begin(), t.end(), randWrapper);
+  // shuffle(t.begin(), t.end(), randWrapper);
+  t = sample(x, x.size());
 
   // get first size entry
   for(size_t i = 0; i < size; i++){
@@ -1463,9 +1466,10 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
   // std::default_random_engine gen(seed);
   // std::normal_distribution<double> dis(0,1);
 
-  vector<size_t> t(n);
+  IntegerVector x(n);
+  IntegerVector t(n);
   for(size_t i = 0; i < n; i++){
-    t[i] = i;
+    x[i] = i;
   }
 
   double pv;
@@ -1486,7 +1490,7 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
       }
       indp  = imp(indp_R);
       vector<vector<double>> newdata = indp;
-      for(int sample = 0; sample < numPerm; sample++){
+      for(int isample = 0; isample < numPerm; isample++){
         // uniformity:
         if(test_uniformity){
           for(size_t col = 1; col < p; col++){
@@ -1495,7 +1499,8 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
             // random_device rd;
             // mt19937 gen(rd());
             // shuffle(t.begin(), t.end(), gen);
-            random_shuffle(t.begin(), t.end(), randWrapper);
+            // shuffle(t.begin(), t.end(), randWrapper);
+            t = sample(x, x.size());
 
             for(size_t i = 0; i < n; i++){
               newdata[i][col] = indp[t[i]][col];
@@ -1503,7 +1508,7 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
           }
           BETfunction bet0(newdata, d, unif, 1, test_uniformity, test_independence, idx);
           bet0.Beast(m, B, lambda, test_uniformity, test_independence, idx);
-          nullD[sample] = bet0.getBeastStat();
+          nullD[isample] = bet0.getBeastStat();
         }else{
           // independence:
           for(size_t g = 1; g < idx.size(); g++){
@@ -1512,7 +1517,8 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
             // random_device rd;
             // mt19937 gen(rd());
             // shuffle(t.begin(), t.end(), gen);
-            random_shuffle(t.begin(), t.end(), randWrapper);
+            // shuffle(t.begin(), t.end(), randWrapper);
+            t = sample(x, x.size());
 
             for(size_t v = 0; v < idx[g].size(); v++){
               for(size_t i = 0; i < n; i++){
@@ -1524,7 +1530,7 @@ List BeastCpp(NumericMatrix& X_R, int d, size_t m, size_t B, bool unif, double l
         // null distribution:
         BETfunction bet0(newdata, d, unif, 1, test_uniformity, test_independence, idx);
         bet0.Beast(m, B, lambda, test_uniformity, test_independence, idx);
-        nullD[sample] = bet0.getBeastStat();
+        nullD[isample] = bet0.getBeastStat();
       }
     }else if(method == "s"){
       // simulation
@@ -1579,9 +1585,10 @@ NumericVector nullCpp(size_t n, size_t p, int d, size_t m, size_t B, double lamb
   vector<vector<double>> indp;
   NumericMatrix indp_R(n, p);
 
-  vector<size_t> t(n);
+  IntegerVector t(n);
+  IntegerVector x(n);
   for(size_t i = 0; i < n; i++){
-    t[i] = i;
+    x[i] = i;
   }
 
   // 1-dim: only simulation
@@ -1596,13 +1603,17 @@ NumericVector nullCpp(size_t n, size_t p, int d, size_t m, size_t B, double lamb
     }
     indp  = imp(indp_R);
     vector<vector<double>> newdata = indp;
-    for(int sample = 0; sample < numPerm; sample++){
+    for(int isample = 0; isample < numPerm; isample++){
       // uniformity:
       if(test_uniformity){
         for(size_t col = 1; col < p; col++){
 
           // shuffle 0~n
-          random_shuffle(t.begin(), t.end(), randWrapper);
+          // random_device rd;
+          // mt19937 gen(rd());
+          // shuffle(t.begin(), t.end(), gen);
+          // shuffle(t.begin(), t.end(), randWrapper);
+          t = sample(x, x.size());
 
           for(size_t i = 0; i < n; i++){
             newdata[i][col] = indp[t[i]][col];
@@ -1610,7 +1621,7 @@ NumericVector nullCpp(size_t n, size_t p, int d, size_t m, size_t B, double lamb
         }
         BETfunction bet0(newdata, d, 1, 1, test_uniformity, test_independence, idx);
         bet0.Beast(m, B, lambda, test_uniformity, test_independence, idx);
-        nullD[sample] = bet0.getBeastStat();
+        nullD[isample] = bet0.getBeastStat();
       }else{
         // independence:
         for(size_t g = 1; g < idx.size(); g++){
@@ -1619,7 +1630,8 @@ NumericVector nullCpp(size_t n, size_t p, int d, size_t m, size_t B, double lamb
           // random_device rd;
           // mt19937 gen(rd());
           // shuffle(t.begin(), t.end(), gen);
-          random_shuffle(t.begin(), t.end(), randWrapper);
+          // shuffle(t.begin(), t.end(), randWrapper);
+          t = sample(x, x.size());
 
           for(size_t v = 0; v < idx[g].size(); v++){
             for(size_t i = 0; i < n; i++){
@@ -1631,7 +1643,7 @@ NumericVector nullCpp(size_t n, size_t p, int d, size_t m, size_t B, double lamb
       // null distribution:
       BETfunction bet0(newdata, d, 0, 1, test_uniformity, test_independence, idx);
       bet0.Beast(m, B, lambda, test_uniformity, test_independence, idx);
-      nullD[sample] = bet0.getBeastStat();
+      nullD[isample] = bet0.getBeastStat();
     }
   }else if(method == "s"){
     // simulation
@@ -1667,3 +1679,4 @@ NumericVector nullCpp(size_t n, size_t p, int d, size_t m, size_t B, double lamb
   return nullD;
 
 }
+

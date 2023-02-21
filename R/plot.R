@@ -64,9 +64,31 @@ plot.bid <- function(depth, be.ind1, be.ind2){
 bet <- function(X, d, unif.margin = FALSE, cex=0.5, ...) UseMethod("bet")
 
 
-bet.plot <- function(X, dep, unif.margin = FALSE, cex=0.5, ...){
+bet.plot <- function(X, dep, unif.margin = FALSE, cex=0.5, index = list(c(1:ncol(X))), ...){
   if(ncol(X) != 2) stop("X does not have two columns.")
-  bet.res <- BETCpp(X, dep, unif.margin, asymptotic = T, test_uniformity = T, test_independence = F, independence_index = list())
+  p = 2
+  if(identical(index, list(c(1:p)))){
+    # c(1:p):uniformity
+    unif.margin = TRUE
+    if(sum(X > 1 | X < 0) > 0) stop("Data out of range [0, 1]")
+    test.uniformity = TRUE
+    test.independence = FALSE
+  }else{
+    test.uniformity = FALSE
+    test.independence = TRUE
+    # test index cover all 1:p for only 1 time
+    v = c()
+    for (i in 1:length(index)) {
+      v = c(v, index[[i]])
+    }
+    if(length(v) != p){
+      stop("index out of range of 1:p")
+    }else if(!all.equal(sort(v), c(1:p))){
+      stop("index should be a list of disjoint subsets of 1:p")
+    }
+  }
+  
+  bet.res <- BETCpp(X, dep, unif.margin, asymptotic = T, test.uniformity, test.independence, index)
   be.ind1 <- unlist(strsplit(bet.res$Interaction, "-"))[1]
   be.ind2 <- unlist(strsplit(bet.res$Interaction, "-"))[2]
   # be.ind1 <- unlist(strsplit(i1, " "))[1]
@@ -94,7 +116,7 @@ MaxBET <- function(X, dep, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE,
   p <- ncol(X)
   if (p == 1){
     for (i in 1:n){
-      if (X[n][1] > 1 || X[n][1] < 0) stop("Data out of range [0, 1]")
+      if(sum(X > 1 | X < 0) > 0) stop("Data out of range [0, 1]")
     }
   }
 
@@ -113,7 +135,7 @@ MaxBET <- function(X, dep, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE,
     test.uniformity = FALSE
     test.independence = TRUE
     # test index cover all 1:p for only 1 time
-    v = c()
+    v = c()              
     for (i in 1:length(index)) {
       v = c(v, index[[i]])
     }
@@ -125,7 +147,7 @@ MaxBET <- function(X, dep, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE,
   }
 
   if (plot && (p == 2))
-    bet.plot(X, dep, unif.margin)
+    bet.plot(X, dep, unif.margin, index = index)
   if (plot && (p != 2)) warning("plot not available: X does not have two columns.")
 
   BETCpp(X, dep, unif.margin, asymptotic, test.uniformity, test.independence, index)
@@ -139,7 +161,7 @@ symm <- function(X, dep, unif.margin = FALSE, print.sample.size = TRUE){
   p <- ncol(X)
   if (p == 1){
     for (i in 1:n){
-      if (X[n][1] > 1 || X[n][1] < 0) stop("Data out of range [0, 1]")
+      if (X[i][1] > 1 || X[i][1] < 0) stop("Data out of range [0, 1]")
     }
   }
   res = symmCpp(X, dep, unif.margin)[-1,]
@@ -161,7 +183,7 @@ get.signs <- function(X, dep, unif.margin = FALSE){
   p <- ncol(X)
   if (p == 1){
     for (i in 1:n){
-      if (X[n][1] > 1 || X[n][1] < 0) stop("Data out of range [0, 1]")
+      if (X[i][1] > 1 || X[i][1] < 0) stop("Data out of range [0, 1]")
     }
   }
 
@@ -179,7 +201,7 @@ cell.counts <- function(X, dep, unif.margin = FALSE){
   p <- ncol(X)
   if (p == 1){
     for (i in 1:n){
-      if (X[n][1] > 1 || X[n][1] < 0) stop("Data out of range [0, 1]")
+      if (X[i][1] > 1 || X[i][1] < 0) stop("Data out of range [0, 1]")
     }
   }
 
@@ -259,7 +281,7 @@ MaxBETs <- function(X, d.max=4, unif.margin = FALSE, asymptotic = TRUE, plot = F
     bet.s.pvalue <- min(min(bet.adj.pvalues)*d.max,1)
     dp = which(bet.adj.pvalues==min(bet.adj.pvalues),arr.ind=TRUE)[1]
     if (plot && p == 2)
-      bet.plot(X, dp, unif.margin)
+      bet.plot(X, dp, unif.margin, index = index)
     if (plot && p != 2) warning('plot not available: X does not have two columns.')
     bet.s.extreme.asymmetry <- bet.extreme.asymmetry[which(bet.adj.pvalues==min(bet.adj.pvalues))]
     bet.s.zstat <- abs(bet.s.extreme.asymmetry)/sqrt(n)
