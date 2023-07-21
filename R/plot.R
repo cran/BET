@@ -33,7 +33,7 @@ bex.centers <- function(depth){			# depth >=1
 }
 
 
-plot.bid <- function(depth, be.ind1, be.ind2){
+plot_bid <- function(depth, be.ind1, be.ind2){
   xyc <- bex.centers(depth)
   BEx <- frac2(xyc[,1], depth)
   BEy <- frac2(xyc[,2], depth)
@@ -61,7 +61,7 @@ plot.bid <- function(depth, be.ind1, be.ind2){
   }
 }
 
-bet <- function(X, d, unif.margin = FALSE, cex=0.5, ...) UseMethod("bet")
+bet <- function(X, dep, unif.margin = FALSE, cex=0.5, index = list(c(1:ncol(X))), ...) UseMethod("bet")
 
 
 bet.plot <- function(X, dep, unif.margin = FALSE, cex=0.5, index = list(c(1:ncol(X))), ...){
@@ -105,7 +105,7 @@ bet.plot <- function(X, dep, unif.margin = FALSE, cex=0.5, index = list(c(1:ncol
   # par(mgp = c(1.8, 0.5, 0),mar=c(3,3,3,1))
   plot(c(0,1), c(0,1), xlab=expression(U[x]),ylab=expression(U[y]),type = "n")
   points(x,y,mgp = c(1.8, 0.5, 0),xlim=c(0,1),ylim=c(0,1),cex=cex,col=2, pch=16)
-  plot.bid(dep, be.ind1, be.ind2)
+  plot_bid(dep, be.ind1, be.ind2)
 }
 
 MaxBET <- function(X, dep, unif.margin = FALSE, asymptotic = TRUE, plot = FALSE, index = list(c(1:ncol(X)))){

@@ -922,11 +922,13 @@ double BETfunction::binomial(int n, int k, double p)
     }
   }
 
+  double res = ret[n][k];
+  
   for (int i = 0; i < n + 1; ++i)
     delete [] ret[i];
   delete [] ret;
 
-  return ret[n][k];
+  return res;
 }
 
 double BETfunction::pbinom(int n, int k, double p)

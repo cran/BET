@@ -2,7 +2,7 @@
 \alias{bet.plot}
 \title{Plotting Binary Expansion Testing (2-dimensions)}
 \usage{
-bet.plot(X, dep, unif.margin = FALSE, cex=0.5, index = list(c(1:ncol(X))), ...)
+\method{bet}{plot}(X, dep, unif.margin = FALSE, cex=0.5, index = list(c(1:ncol(X))), ...)
 }
 \arguments{
 \item{X}{a matrix with two columns.}
