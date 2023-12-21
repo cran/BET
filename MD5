@@ -1,13 +1,13 @@
-f7249dbb89caccce99af4d659a825ba9 *DESCRIPTION
+95190bbcc932b9620aa530a7a4bf0c07 *DESCRIPTION
 4a449a4675d2a8e1334d1048fec4cc44 *NAMESPACE
 79f8bc25d3140f920f9dd4403bb591b4 *R/RcppExports.R
 321c31643f16e9f51fdfff9ccf7fb40c *R/plot.R
 e148e788be297627d911ca8017df9c99 *R/star-data.R
-e6aa3ce9a1d04b6b5fb2663adf79102c *build/partial.rdb
+08cab38cc4b9b08efe176d22726bb28a *build/partial.rdb
 fc29ab81a05b60ce67021837a7b72d37 *data/star.rda
 46cf4529514bf9080aee481caebb87f4 *man/BEAST_null.Rd
 89f14f1c465044a401eda6e1b875cce6 *man/BET.Rd
-fa40c33d82f4470fafc24fdd26917c91 *man/BET_package.Rd
+4e908f826aa161eaeeffa5a5c8518d70 *man/BET_package.Rd
 ab6152c9a7d4d66e2a10ece6304496bc *man/BETs.Rd
 aec8324d832421f821495d7d46bd256f *man/Beast.Rd
 c5300f80480a690bc159a9208fd26949 *man/bet.plot.Rd
