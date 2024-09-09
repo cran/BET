@@ -21,7 +21,3 @@ BeastCpp <- function(X_R, d, m, B, unif, lambda, test_uniformity, test_independe
     .Call('_BET_BeastCpp', PACKAGE = 'BET', X_R, d, m, B, unif, lambda, test_uniformity, test_independence, independence_index, method, numPerm)
 }
 
-nullCpp <- function(n, p, d, m, B, lambda, test_uniformity, test_independence, independence_index, method, numPerm) {
-    .Call('_BET_nullCpp', PACKAGE = 'BET', n, p, d, m, B, lambda, test_uniformity, test_independence, independence_index, method, numPerm)
-}
-

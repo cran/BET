@@ -14,7 +14,6 @@ The \code{BET} package provides functions for nonparametric detection of nonunif
 \code{\link{bet.plot}}
 \code{\link{MaxBETs}}
 \code{\link{BEAST}}
-\code{\link{BEAST.null.simu}}
 }
 
 \section{Reference(s)}{

@@ -336,10 +336,9 @@ BEAST <- function(X, dep, subsample.percent = 1/2, B = 100, unif.margin = FALSE,
       num <- 1
     }else if(method == "p"){
       num <- 100
-    }else if(method == "s"){
-      num <- 1000
     }
   }
+  
 
 
   m <- n * subsample.percent
@@ -351,51 +350,51 @@ BEAST <- function(X, dep, subsample.percent = 1/2, B = 100, unif.margin = FALSE,
 
 }
 
-BEAST.null.simu <- function(n, p, dep, subsample.percent = 1/2, B = 100, lambda = NULL, index = list(c(1:p)), method = "p", num = NULL){
-  if(is.null(lambda)){
-    lambda <- sqrt(log(2^(p * dep)) / (8*n))
-  }
-
-  # independent index
-  # mutual.idx = list()
-  # for(i in 1:p){
-  #   mutual.idx[length(mutual.idx) + 1] = c(i)
-  # }
-
-  if(identical(index, list(c(1:p)))){
-    # c(1:p):uniformity
-    test.uniformity = TRUE
-    test.independence = FALSE
-  }else{
-    test.uniformity = FALSE
-    test.independence = TRUE
-    # test index cover all 1:p for only 1 time
-    v = c()
-    for (i in 1:length(index)) {
-      v = c(v, index[[i]])
-    }
-    if(length(v) != p){
-      stop("index out of range of 1:p")
-    }else if(!all.equal(sort(v), c(1:p))){
-      stop("index should be a list of disjoint subsets of 1:p")
-    }
-  }
-
-  if(!method %in% c("p", "s")){
-    stop("Select a method from permutation or simulation to generate a null distribution.")
-  }
-
-  if(is.null(num)){
-    if(method == "p"){
-      num = 100
-    }else if(method == "s"){
-      num = 1000
-    }
-  }
-
-
-  m <- n * subsample.percent
-
-  nullCpp(n, p, dep, m, B, lambda, test.uniformity, test.independence, index, method, num)
-
-}
+# BEAST.null.simu <- function(n, p, dep, subsample.percent = 1/2, B = 100, lambda = NULL, index = list(c(1:p)), method = "p", num = NULL){
+#   if(is.null(lambda)){
+#     lambda <- sqrt(log(2^(p * dep)) / (8*n))
+#   }
+# 
+#   # independent index
+#   # mutual.idx = list()
+#   # for(i in 1:p){
+#   #   mutual.idx[length(mutual.idx) + 1] = c(i)
+#   # }
+# 
+#   if(identical(index, list(c(1:p)))){
+#     # c(1:p):uniformity
+#     test.uniformity = TRUE
+#     test.independence = FALSE
+#   }else{
+#     test.uniformity = FALSE
+#     test.independence = TRUE
+#     # test index cover all 1:p for only 1 time
+#     v = c()
+#     for (i in 1:length(index)) {
+#       v = c(v, index[[i]])
+#     }
+#     if(length(v) != p){
+#       stop("index out of range of 1:p")
+#     }else if(!all.equal(sort(v), c(1:p))){
+#       stop("index should be a list of disjoint subsets of 1:p")
+#     }
+#   }
+# 
+#   if(!method %in% c("p", "s")){
+#     stop("Select a method from permutation or simulation to generate a null distribution.")
+#   }
+# 
+#   if(is.null(num)){
+#     if(method == "p"){
+#       num = 100
+#     }else if(method == "s"){
+#       num = 1000
+#     }
+#   }
+# 
+# 
+#   m <- n * subsample.percent
+# 
+#   nullCpp(n, p, dep, m, B, lambda, test.uniformity, test.independence, index, method, num)
+# 
+# }

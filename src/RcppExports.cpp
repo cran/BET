@@ -87,27 +87,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// nullCpp
-NumericVector nullCpp(size_t n, size_t p, int d, size_t m, size_t B, double lambda, bool test_uniformity, bool test_independence, List& independence_index, String method, int numPerm);
-RcppExport SEXP _BET_nullCpp(SEXP nSEXP, SEXP pSEXP, SEXP dSEXP, SEXP mSEXP, SEXP BSEXP, SEXP lambdaSEXP, SEXP test_uniformitySEXP, SEXP test_independenceSEXP, SEXP independence_indexSEXP, SEXP methodSEXP, SEXP numPermSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< size_t >::type n(nSEXP);
-    Rcpp::traits::input_parameter< size_t >::type p(pSEXP);
-    Rcpp::traits::input_parameter< int >::type d(dSEXP);
-    Rcpp::traits::input_parameter< size_t >::type m(mSEXP);
-    Rcpp::traits::input_parameter< size_t >::type B(BSEXP);
-    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
-    Rcpp::traits::input_parameter< bool >::type test_uniformity(test_uniformitySEXP);
-    Rcpp::traits::input_parameter< bool >::type test_independence(test_independenceSEXP);
-    Rcpp::traits::input_parameter< List& >::type independence_index(independence_indexSEXP);
-    Rcpp::traits::input_parameter< String >::type method(methodSEXP);
-    Rcpp::traits::input_parameter< int >::type numPerm(numPermSEXP);
-    rcpp_result_gen = Rcpp::wrap(nullCpp(n, p, d, m, B, lambda, test_uniformity, test_independence, independence_index, method, numPerm));
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_BET_symmCpp", (DL_FUNC) &_BET_symmCpp, 3},
@@ -115,7 +94,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_BET_cellCpp", (DL_FUNC) &_BET_cellCpp, 3},
     {"_BET_BETCpp", (DL_FUNC) &_BET_BETCpp, 7},
     {"_BET_BeastCpp", (DL_FUNC) &_BET_BeastCpp, 11},
-    {"_BET_nullCpp", (DL_FUNC) &_BET_nullCpp, 11},
     {NULL, NULL, 0}
 };
 
