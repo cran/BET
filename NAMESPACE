@@ -11,3 +11,8 @@ importFrom(Rcpp, evalCpp)
 importFrom("grDevices", "rgb")
 importFrom("graphics", "par", "points", "polygon", "plot")
 importFrom("stats", "dhyper", "ecdf", "fisher.test")
+
+export(BEAST.asymptotic.calibrate)
+export(BEAST.asymptotic)
+S3method(print,BEASTAsymptoticCalibration)
+S3method(print,BEASTAsymptoticResult)

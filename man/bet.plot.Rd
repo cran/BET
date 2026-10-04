@@ -25,7 +25,7 @@
 \code{bet.plot} shows the cross interaction of the strongest asymmetry, which the BET returns with the rejection of independence null.
 This function only works for the test on two variables, that is, \code{X} can only have two columns.
 There are \eqn{2^{2dep} - 1} nontrivial binary variables in the \eqn{\sigma}-field and \eqn{(2^dep - 1)^2} of them are cross interactions, whose positive regions are in plotted in white and whose negative regions are plotted in blue.
-\code{plot.bet} shows the cross interaction where the difference of number of observations in the positive and negative region is largest.
+\code{bet.plot} shows the cross interaction where the difference of number of observations in the positive and negative region is largest.
 }
 \examples{
 v <- runif(128, -pi, pi)

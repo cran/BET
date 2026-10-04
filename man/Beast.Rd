@@ -19,9 +19,9 @@ BEAST(
 
 \item{dep}{depth of the binary expansion for the \code{BEAST}.}
 
-\item{subsample.percent}{sample size for subsampling.}
+\item{subsample.percent}{Fraction of observations in each subsample. The effective size is the positive integer truncation of n * subsample.percent.}
 
-\item{B}{times of subsampling.}
+\item{B}{Number of subsamples.}
 
 \item{unif.margin}{logicals. If \code{TRUE} the marginal distribution is known to be Uniform[0,1]. Default is \code{FALSE}, and empirical cdf transformation will be applied to each marginal distribution.}
 
@@ -34,7 +34,7 @@ BEAST(
   If \code{"p"}, then compute null distribution with permutations. If \code{"s"}, then compute null distribution with simulations. If \code{"stat"}, only return interaction and BEAST Statistic. The \code{method = "s"} option is only available for testing uniformity and bivariate independence.
 }
 \item{num}{
-  number of permutations if method == "p" (default to be 100), or simulations if method == "s" (default to be 1000).
+  number of permutations if method == "p" (default to be 100), or simulations if method == "s" (supply an explicit positive value).
 }
 }
 
